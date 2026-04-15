@@ -7,9 +7,13 @@ interface Props {
   isUpsell?: boolean
 }
 
-export function StrategyCard({ strategy, isSelected, onSelect, isUpsell }: Props) {
-  const earnedDays = strategy.totalDays - strategy.leaveDays
+function cpLabel(cp: number): { text: string; className: string } {
+  if (cp >= 3.5) return { text: '超划算', className: 'text-emerald-600' }
+  if (cp >= 2.8) return { text: '划算',   className: 'text-sky-500' }
+  return              { text: '普通',    className: 'text-slate-400' }
+}
 
+export function StrategyCard({ strategy, isSelected, onSelect, isUpsell }: Props) {
   return (
     <div
       onClick={onSelect}
@@ -54,14 +58,15 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell }: Props
             {strategy.start.replace(/-/g, '/')} ～ {strategy.end.replace(/-/g, '/')}
           </div>
         </div>
-        {!strategy.isFreebie && (
-          <div className="text-right shrink-0">
-            <div className="text-2xl font-extrabold text-sky-500 leading-none">
-              {strategy.cpValue!.toFixed(1)}x
+        {!strategy.isFreebie && (() => {
+          const { text, className } = cpLabel(strategy.cpValue!)
+          return (
+            <div className="text-right shrink-0">
+              <div className={`text-xl font-extrabold leading-none ${className}`}>{text}</div>
+              <div className="text-xs text-slate-400 mt-0.5">划算程度</div>
             </div>
-            <div className="text-xs text-slate-400 mt-0.5">CP值</div>
-          </div>
-        )}
+          )
+        })()}
       </div>
 
       {/* Stats row — only for non-freebie */}
@@ -74,10 +79,6 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell }: Props
           <div className="flex-1 bg-slate-50 rounded-xl p-2 text-center">
             <div className="text-sm font-bold text-slate-900">{strategy.totalDays}</div>
             <div className="text-xs text-slate-400">天連休</div>
-          </div>
-          <div className="flex-1 bg-green-50 rounded-xl p-2 text-center">
-            <div className="text-sm font-bold text-green-600">+{earnedDays}</div>
-            <div className="text-xs text-slate-400">天賺到</div>
           </div>
         </div>
       )}
