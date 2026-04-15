@@ -59,8 +59,8 @@ export function ShareCard({ strategy }: Props) {
       {/* Header row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
         <div>
-          <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>vacay.tw 🏖️</div>
-          <div style={{ fontSize: '11px', color: '#64748b' }}>台灣最強請假攻略</div>
+          <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>vacay.tw</div>
+          <div style={{ fontSize: '11px', color: '#64748b' }}>台灣請假攻略</div>
         </div>
         <QRCodeSVG value={url} size={52} level="M" />
       </div>
@@ -78,7 +78,7 @@ export function ShareCard({ strategy }: Props) {
 
         {strategy.isFreebie ? (
           <div style={{ fontSize: '20px', fontWeight: 800, color: '#16a34a' }}>
-            免請假連休 {strategy.totalDays} 天 🎉
+            免請假連休 {strategy.totalDays} 天
           </div>
         ) : (
           <>
@@ -135,7 +135,7 @@ export function ShareCard({ strategy }: Props) {
 
       {/* Footer */}
       <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', fontSize: '11px', color: '#94a3b8', textAlign: 'center' }}>
-        vacay.tw | 台灣最強請假攻略
+        vacay.tw | 台灣請假攻略
       </div>
     </div>
   )

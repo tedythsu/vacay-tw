@@ -124,9 +124,9 @@ export default function App() {
         {/* ── Header ─────────────────────────────────────────────── */}
         <header className="pt-8 pb-4 text-center">
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            vacay.tw 🏖️
+            vacay.tw
           </h1>
-          <p className="text-sm text-slate-500 mt-1">台灣最強請假攻略</p>
+          <p className="text-sm text-slate-500 mt-1">台灣請假攻略</p>
         </header>
 
         {/* ── Year Tabs ───────────────────────────────────────────── */}
@@ -296,7 +296,7 @@ export default function App() {
                 }}
                 className="w-full mt-4 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white rounded-xl py-3.5 font-semibold text-sm transition-colors"
               >
-                📤 分享這個攻略
+                分享這個攻略
               </button>
             </div>
           </div>

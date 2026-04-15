@@ -33,17 +33,17 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell }: Props
         )}
         {strategy.isSuperCombo && (
           <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
-            大禮包 🎁
+            大禮包
           </span>
         )}
         {strategy.isFreebie && (
           <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
-            免請假 🎉
+            免請假
           </span>
         )}
         {isUpsell && (
           <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
-            建議加碼 💡
+            建議加碼
           </span>
         )}
       </div>
