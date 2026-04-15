@@ -4,9 +4,10 @@ interface Props {
   strategy: Strategy
   isSelected: boolean
   onSelect: () => void
+  isUpsell?: boolean
 }
 
-export function StrategyCard({ strategy, isSelected, onSelect }: Props) {
+export function StrategyCard({ strategy, isSelected, onSelect, isUpsell }: Props) {
   const earnedDays = strategy.totalDays - strategy.leaveDays
 
   return (
@@ -17,7 +18,9 @@ export function StrategyCard({ strategy, isSelected, onSelect }: Props) {
         'hover:scale-[1.02] active:scale-[0.99]',
         isSelected
           ? 'border-2 border-sky-500 shadow-md shadow-sky-100'
-          : 'border border-slate-200 shadow-sm',
+          : isUpsell
+            ? 'border border-dashed border-orange-200 shadow-sm'
+            : 'border border-slate-200 shadow-sm',
         strategy.isFreebie ? 'bg-green-50' : 'bg-white',
       ].join(' ')}
     >
@@ -36,6 +39,11 @@ export function StrategyCard({ strategy, isSelected, onSelect }: Props) {
         {strategy.isFreebie && (
           <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
             免請假 🎉
+          </span>
+        )}
+        {isUpsell && (
+          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
+            建議加碼 💡
           </span>
         )}
       </div>

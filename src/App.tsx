@@ -19,10 +19,14 @@ function parseYearFromId(id: string): Year | null {
   return null
 }
 
+const MIN_BUDGET = 1
+const MAX_BUDGET = 7
+
 export default function App() {
   const [selectedYear, setSelectedYear] = useState<Year>(2026)
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null)
   const [showAll, setShowAll] = useState(false)
+  const [budget, setBudget] = useState(3)
 
   const strategies = calculateStrategies(
     selectedYear,
@@ -70,12 +74,26 @@ export default function App() {
     window.history.replaceState(null, '', location.pathname)
   }
 
+  function handleBudgetChange(delta: number) {
+    setBudget(prev => Math.max(MIN_BUDGET, Math.min(MAX_BUDGET, prev + delta)))
+    setShowAll(false)
+  }
+
+  // ── Budget filtering ────────────────────────────────────────────────────────
+  // Tier 1: freebies — always shown, not subject to budget
+  // Tier 2: leaveDays <= budget — sorted by cpValue desc (engine already does this)
+  // Tier 3: leaveDays === budget + 1 — "建議加碼", shown at bottom
+  const freebies = strategies.filter(s => s.isFreebie)
+  const withinBudget = strategies.filter(s => !s.isFreebie && s.leaveDays <= budget)
+  const upsells = strategies.filter(s => !s.isFreebie && s.leaveDays === budget + 1)
+  const displayStrategies = [...freebies, ...withinBudget, ...upsells]
+
   // Build list with AdSlots at positions after index 0 and index 2
   const INITIAL_SHOW = 5
 
   // Build full list first
   const allListItems: ListItem[] = []
-  strategies.forEach((s, i) => {
+  displayStrategies.forEach((s, i) => {
     allListItems.push({ type: 'strategy', strategy: s })
     if (i === 0 || i === 2) {
       allListItems.push({ type: 'ad', key: `ad-${i}` })
@@ -131,6 +149,33 @@ export default function App() {
           ))}
         </div>
 
+        {/* ── Budget Stepper ──────────────────────────────────────── */}
+        <div className="flex items-center justify-center gap-3 bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3 mb-4">
+          <span className="text-sm text-slate-500">我有</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleBudgetChange(-1)}
+              disabled={budget <= MIN_BUDGET}
+              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors"
+              aria-label="減少請假天數"
+            >
+              −
+            </button>
+            <span className="text-2xl font-extrabold text-sky-500 w-7 text-center tabular-nums">
+              {budget}
+            </span>
+            <button
+              onClick={() => handleBudgetChange(1)}
+              disabled={budget >= MAX_BUDGET}
+              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors"
+              aria-label="增加請假天數"
+            >
+              +
+            </button>
+          </div>
+          <span className="text-sm text-slate-500">天假，幫我找最佳攻略</span>
+        </div>
+
         {/* ── Strategy List ───────────────────────────────────────── */}
         <div className="space-y-3 pb-2">
           {listItems.map(item =>
@@ -141,6 +186,7 @@ export default function App() {
                 <StrategyCard
                   strategy={item.strategy}
                   isSelected={selectedStrategy?.id === item.strategy.id}
+                  isUpsell={!item.strategy.isFreebie && item.strategy.leaveDays === budget + 1}
                   onSelect={() => handleSelectStrategy(item.strategy)}
                 />
               </div>
@@ -149,12 +195,12 @@ export default function App() {
         </div>
 
         {/* Show more button */}
-        {!showAll && strategies.length > INITIAL_SHOW && (
+        {!showAll && displayStrategies.length > INITIAL_SHOW && (
           <button
             onClick={() => setShowAll(true)}
             className="w-full py-3 text-sm text-slate-500 hover:text-sky-500 border border-dashed border-slate-200 rounded-2xl transition-colors mt-1 mb-2"
           >
-            顯示全部 {strategies.length} 個攻略 ↓
+            顯示全部 {displayStrategies.length} 個攻略 ↓
           </button>
         )}
 
