@@ -3,6 +3,7 @@ import { calculateStrategies } from './engine/strategy'
 import { StrategyCard } from './components/StrategyCard'
 import { Calendar } from './components/Calendar'
 import { AdSlot } from './components/AdSlot'
+import { ShareCard } from './components/ShareCard'
 import type { Strategy, HolidayEntry } from './engine/strategy'
 import holidaysData from './data/holidays.json'
 
@@ -173,6 +174,8 @@ export default function App() {
           <p className="text-xs text-slate-300">© 2026 vacay.tw</p>
         </footer>
       </div>
+      {/* Hidden share card for screenshot */}
+      {selectedStrategy && <ShareCard strategy={selectedStrategy} />}
     </div>
   )
 }
