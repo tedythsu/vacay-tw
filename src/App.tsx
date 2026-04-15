@@ -13,8 +13,8 @@ type ListItem =
   | { type: 'ad'; key: string }
 
 function parseYearFromId(id: string): Year | null {
-  if (id.includes('-2026')) return 2026
-  if (id.includes('-2027')) return 2027
+  if (id.endsWith('-2026') || id.includes('-2026-')) return 2026
+  if (id.endsWith('-2027') || id.includes('-2027-')) return 2027
   return null
 }
 
@@ -86,10 +86,12 @@ export default function App() {
         </header>
 
         {/* ── Year Tabs ───────────────────────────────────────────── */}
-        <div className="flex border-b-2 border-slate-100 mb-4">
+        <div role="tablist" className="flex border-b-2 border-slate-100 mb-4">
           {([2026, 2027] as Year[]).map(year => (
             <button
               key={year}
+              role="tab"
+              aria-selected={selectedYear === year}
               onClick={() => handleYearChange(year)}
               className={[
                 'flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition-colors',
@@ -144,13 +146,17 @@ export default function App() {
               onClick={async () => {
                 const el = document.getElementById('share-card-hidden')
                 if (!el) return
-                await document.fonts.ready
-                const { toPng } = await import('html-to-image')
-                const dataUrl = await toPng(el, { pixelRatio: 2, cacheBust: true })
-                const link = document.createElement('a')
-                link.download = `vacay-${selectedStrategy.id}.png`
-                link.href = dataUrl
-                link.click()
+                try {
+                  await document.fonts.ready
+                  const { toPng } = await import('html-to-image')
+                  const dataUrl = await toPng(el, { pixelRatio: 2, cacheBust: true })
+                  const link = document.createElement('a')
+                  link.download = `vacay-${selectedStrategy.id}.png`
+                  link.href = dataUrl
+                  link.click()
+                } catch (err) {
+                  console.error('[share] toPng failed', err)
+                }
               }}
               className="w-full mt-3 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white rounded-xl py-3.5 font-semibold text-sm transition-colors"
             >
