@@ -1,6 +1,5 @@
-import { forwardRef } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
-import { eachDayOfInterval, parseISO, format, isWeekend } from 'date-fns'
+import { eachDayOfInterval, parseISO, format } from 'date-fns'
 import type { Strategy } from '../engine/strategy'
 
 interface Props {
@@ -8,6 +7,7 @@ interface Props {
 }
 
 interface DayBlock {
+  date: string
   day: string
   bg: string
   textColor: string
@@ -26,25 +26,24 @@ function buildDayBlocks(strategy: Strategy): DayBlock[] {
   return days.map(day => {
     const dateStr = format(day, 'yyyy-MM-dd')
     if (leaveSet.has(dateStr)) {
-      return { day: format(day, 'd'), bg: '#FDE047', textColor: '#713f12' }
+      return { date: dateStr, day: format(day, 'd'), bg: '#FDE047', textColor: '#713f12' }
     }
     if (holidaySet.has(dateStr)) {
-      return { day: format(day, 'd'), bg: '#FDA4AF', textColor: '#9f1239' }
+      return { date: dateStr, day: format(day, 'd'), bg: '#FDA4AF', textColor: '#9f1239' }
     }
-    if (weekendSet.has(dateStr) || isWeekend(day)) {
-      return { day: format(day, 'd'), bg: '#E2E8F0', textColor: '#64748b' }
+    if (weekendSet.has(dateStr)) {
+      return { date: dateStr, day: format(day, 'd'), bg: '#E2E8F0', textColor: '#64748b' }
     }
-    return { day: format(day, 'd'), bg: '#F8FAFC', textColor: '#94a3b8' }
+    return { date: dateStr, day: format(day, 'd'), bg: '#F8FAFC', textColor: '#94a3b8' }
   })
 }
 
-export const ShareCard = forwardRef<HTMLDivElement, Props>(({ strategy }, ref) => {
+export function ShareCard({ strategy }: Props) {
   const url = `https://vacay.tw/#${strategy.id}`
   const blocks = buildDayBlocks(strategy)
 
   return (
     <div
-      ref={ref}
       id="share-card-hidden"
       style={{
         position: 'absolute',
@@ -99,9 +98,9 @@ export const ShareCard = forwardRef<HTMLDivElement, Props>(({ strategy }, ref) =
 
       {/* Day blocks */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
-        {blocks.map((block, i) => (
+        {blocks.map(block => (
           <div
-            key={i}
+            key={block.date}
             style={{
               width: '30px',
               height: '30px',
@@ -140,6 +139,4 @@ export const ShareCard = forwardRef<HTMLDivElement, Props>(({ strategy }, ref) =
       </div>
     </div>
   )
-})
-
-ShareCard.displayName = 'ShareCard'
+}
