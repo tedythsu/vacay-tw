@@ -5,6 +5,7 @@ interface Props {
   isSelected: boolean
   onSelect: () => void
   isUpsell?: boolean
+  isBest?: boolean
 }
 
 function cpLabel(cp: number): { text: string; className: string } {
@@ -14,7 +15,7 @@ function cpLabel(cp: number): { text: string; className: string } {
   return              { text: '低',   className: 'text-slate-400' }
 }
 
-export function StrategyCard({ strategy, isSelected, onSelect, isUpsell }: Props) {
+export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest }: Props) {
   return (
     <div
       onClick={onSelect}
@@ -23,14 +24,21 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell }: Props
         'hover:scale-[1.02] active:scale-[0.99]',
         isSelected
           ? 'border-2 border-sky-500 shadow-md shadow-sky-100'
-          : isUpsell
-            ? 'border border-dashed border-orange-200 shadow-sm'
-            : 'border border-slate-200 shadow-sm',
-        strategy.isFreebie ? 'bg-green-50' : 'bg-white',
+          : isBest
+            ? 'border-2 border-amber-400 shadow-md shadow-amber-100'
+            : isUpsell
+              ? 'border border-dashed border-orange-200 shadow-sm'
+              : 'border border-slate-200 shadow-sm',
+        isBest ? 'bg-amber-50' : strategy.isFreebie ? 'bg-green-50' : 'bg-white',
       ].join(' ')}
     >
       {/* Badges */}
       <div className="flex gap-1.5 flex-wrap mb-2">
+        {isBest && (
+          <span className="text-xs bg-amber-400 text-white px-2 py-0.5 rounded-full font-semibold">
+            ★ 最佳方案
+          </span>
+        )}
         {strategy.isSuperCombo && (
           <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
             大禮包
@@ -73,11 +81,11 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell }: Props
       {/* Stats row — only for non-freebie */}
       {!strategy.isFreebie && (
         <div className="flex gap-2 mt-3">
-          <div className="flex-1 bg-slate-50 rounded-xl p-2 text-center">
+          <div className={`flex-1 rounded-xl p-2 text-center ${isBest ? 'bg-amber-100' : 'bg-slate-50'}`}>
             <div className="text-sm font-bold text-slate-900">{strategy.leaveDays}</div>
             <div className="text-xs text-slate-400">天請假</div>
           </div>
-          <div className="flex-1 bg-slate-50 rounded-xl p-2 text-center">
+          <div className={`flex-1 rounded-xl p-2 text-center ${isBest ? 'bg-amber-100' : 'bg-slate-50'}`}>
             <div className="text-sm font-bold text-slate-900">{strategy.totalDays}</div>
             <div className="text-xs text-slate-400">天連休</div>
           </div>

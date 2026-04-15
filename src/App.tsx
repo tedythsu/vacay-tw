@@ -4,7 +4,6 @@ import { calculateStrategies, getAllHolidayDates } from './engine/strategy'
 import { StrategyCard } from './components/StrategyCard'
 import { Calendar } from './components/Calendar'
 import { AdSlot } from './components/AdSlot'
-import { ShareCard } from './components/ShareCard'
 import type { HolidayEntry } from './engine/strategy'
 import holidaysData from './data/holidays.json'
 
@@ -34,6 +33,7 @@ export default function App() {
   const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
   const [sortBy, setSortBy] = useState<'cp' | 'date' | 'leave' | 'total'>('cp')
+  const [shareCopied, setShareCopied] = useState(false)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [cpFilter, setCpFilter] = useState<'all' | 'mid' | 'high' | 'vhigh'>('all')
 
@@ -78,6 +78,8 @@ export default function App() {
 
   function handleCloseSheet() {
     setSheetOpen(false)
+    setSelectedStrategy(null)
+    window.history.replaceState(null, '', location.pathname)
   }
 
   function handleYearChange(year: number) {
@@ -127,6 +129,10 @@ export default function App() {
   const upsells = strategies.filter(s =>
     !s.isFreebie && s.leaveDays === budget + 1 && (s.cpValue ?? 0) >= Math.max(2.5, CP_FILTER_MIN[cpFilter])
   )
+
+  const bestCp = withinBudget.length > 0
+    ? Math.max(...withinBudget.map(s => s.cpValue ?? 0))
+    : -Infinity
 
   const paidStrategies = [...withinBudget, ...upsells].sort((a, b) => {
     const dir = sortDir === 'asc' ? 1 : -1
@@ -287,6 +293,7 @@ export default function App() {
                   strategy={item.strategy}
                   isSelected={selectedStrategy?.id === item.strategy.id}
                   isUpsell={!item.strategy.isFreebie && item.strategy.leaveDays === budget + 1}
+                  isBest={!item.strategy.isFreebie && item.strategy.leaveDays <= budget && item.strategy.cpValue === bestCp}
                   onSelect={() => handleSelectStrategy(item.strategy)}
                 />
               </div>
@@ -404,31 +411,24 @@ export default function App() {
 
               <button
                 onClick={async () => {
-                  const el = document.getElementById('share-card-hidden')
-                  if (!el) return
-                  try {
-                    await document.fonts.ready
-                    const { toPng } = await import('html-to-image')
-                    const dataUrl = await toPng(el, { pixelRatio: 2, cacheBust: true })
-                    const link = document.createElement('a')
-                    link.download = `vacay-${selectedStrategy.id}.png`
-                    link.href = dataUrl
-                    link.click()
-                  } catch (err) {
-                    console.error('[share] toPng failed', err)
+                  const url = `${location.origin}${location.pathname}#${selectedStrategy.id}`
+                  if (navigator.share) {
+                    await navigator.share({ title: selectedStrategy.name, url })
+                  } else {
+                    await navigator.clipboard.writeText(url)
+                    setShareCopied(true)
+                    setTimeout(() => setShareCopied(false), 2000)
                   }
                 }}
                 className="w-full mt-4 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white rounded-xl py-3.5 font-semibold text-sm transition-colors"
               >
-                分享這個攻略
+                {shareCopied ? '已複製連結 ✓' : '分享這個攻略'}
               </button>
             </div>
           </div>
         </>
       )}
 
-      {/* Hidden share card for screenshot */}
-      {selectedStrategy && <ShareCard strategy={selectedStrategy} />}
     </div>
   )
 }
