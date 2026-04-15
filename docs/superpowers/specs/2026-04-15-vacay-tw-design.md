@@ -90,7 +90,7 @@ interface Strategy {
   year: number
   leaveDays: number            // 實際需請天數（含補班日代價）
   totalDays: number            // 整段連休天數
-  cpValue: number              // totalDays / leaveDays，leaveDays=0 時為 Infinity
+  cpValue: number | null       // totalDays / leaveDays；isFreebie 時為 null（不參與排序）
   start: string                // ISO date，連假第一天
   end: string                  // ISO date，連假最後一天
   suggestedLeaveDates: string[]
@@ -116,10 +116,10 @@ calculateStrategies(year: number, holidays: HolidayData): Strategy[]
 
 1. **遍歷每個節日**，找出原始假期區間
 2. **向前後延伸週末**，計算「裸假」總天數
-3. **枚舉請假擴展方案**：
+3. **枚舉請假擴展方案**（M, N 最大值均為 3，避免無意義長方案）：
    - 前補 N 天（N = 1, 2, 3）
-   - 後補 N 天
-   - 前 M 天 + 後 N 天組合
+   - 後補 N 天（N = 1, 2, 3）
+   - 前 M 天 + 後 N 天組合（M + N ≤ 5，最多前 3 後 3，總枚舉 < 30 種）
 4. **對每個方案呼叫 `calculateEffectiveLeave()`**：
    ```ts
    const calculateEffectiveLeave = (start, end, holidays) => {
@@ -154,9 +154,9 @@ calculateStrategies(year: number, holidays: HolidayData): Strategy[]
 ### App.tsx
 
 - 狀態：`selectedYear`、`selectedStrategy`
-- URL hash 雙向同步：
-  - 選卡片時 → 更新 `location.hash`
-  - 啟動時 → 讀 `location.hash`，解析 year + strategy id，自動滾動定位並展開月曆
+- URL hash 雙向同步（格式：`#{strategy.id}`，year 已包含在 id 內，如 `#lunar-new-year-2027`）：
+  - 選卡片時 → 使用 `window.history.replaceState(null, '', '#' + strategy.id)`（非 `location.hash` 賦值），避免 Back stack 堆積，讓使用者按上一頁直接離站
+  - 啟動時 → 讀 `location.hash`，從 id 尾端解析年份（`-2026`/`-2027`），自動設定 `selectedYear` + `selectedStrategy`，滾動定位並展開月曆
 - 策略列表插入 AdSlot：第 2、4 位置（0-indexed: index 1、3）
 
 ### StrategyCard.tsx
@@ -209,8 +209,11 @@ Props:
   - 節日名稱、「請 N 天 → 連休 N 天」
   - CP 值大字
   - 日期範圍
-  - 月曆色塊縮圖（色彩誇張化，提升社群辨識度）
-  - QR Code（qrcode.react，導回 `vacay.tw/#{strategy.id}`）
+  - 月曆色塊縮圖：
+    - 請假日（suggestedLeaveDates）→ 亮黃色 `#FDE047`（在 Line 小圖預覽中辨識度最高）
+    - 國定假日（holidayDates）→ 柔和紅 `#FDA4AF`
+    - 週末（weekendDates）→ 淺灰 `#E2E8F0`
+  - QR Code（qrcode.react，導回 `vacay.tw/#${strategy.id}`）
   - 底部：`vacay.tw | 台灣最強請假攻略`
 
 ## 7. SEO
@@ -229,7 +232,20 @@ Props:
 
 OG Image 為靜態（MVP 限制），動態分享靠下載 PNG 圖卡彌補。
 
-## 8. 非功能性需求
+## 8. UI 風格規範
+
+- **整體氛圍**：白色底 + 大圓角（`rounded-2xl`）+ 柔和陰影（`shadow-sm`），日系極簡風
+- **字體**：標題 `font-bold`，內文系統無襯線（`font-sans`，在 iOS 為 SF Pro，Android 為 Roboto，Windows 為微軟正黑）
+- **互動感**：策略卡片加 `hover:scale-[1.02] transition-transform`
+- **isFreebie 卡片**：淡綠色背景（`bg-green-50 border-green-200`），強制置頂，吸引力標記
+- **主色調（白底模式）**：
+  - Accent：`#0ea5e9`（sky-500）
+  - 假日：`#fee2e2`（red-100）/ `#dc2626`（red-600）
+  - 建議請假：`#fef9c3`（yellow-100）/ `#ca8a04`（yellow-600）
+  - 週末：`#f1f5f9`（slate-100）
+  - isFreebie：`#f0fdf4`（green-50）/ `#16a34a`（green-600）
+
+## 9. 非功能性需求
 
 | 需求 | 目標 | 實作方式 |
 |------|------|---------|
@@ -238,20 +254,20 @@ OG Image 為靜態（MVP 限制），動態分享靠下載 PNG 圖卡彌補。
 | 載入速度 | Line 內建瀏覽器快開 | 純靜態，無 API call，holidays.json 在 build time import |
 | 後端依賴 | 無 | 完全靜態，Vercel 純 CDN 服務 |
 
-## 9. 廣告位佈局
+## 10. 廣告位佈局
 
 - 策略列表第 2 張卡片位置（index 1）
 - 策略列表第 4 張卡片位置（index 3）
 - 使用 `AdSlot` 組件，`min-height: 250px` 防 CLS
 
-## 10. 2027 預估假表聲明
+## 11. 2027 預估假表聲明
 
 - 年份 Tab 顯示「2027 預估」badge
 - 每張 `is_official: false` 的策略卡片顯示「預估」badge
 - 頁腳加入免責聲明：「2027 年假表依農曆週期預估，正式請假請依行政院人事行政總處公告為準。」
 - `holidays.json` 的 `is_official` 欄位：官方公告後只需改布林值 + 微調日期
 
-## 11. 2026 已確認節日（部分）
+## 12. 2026 已確認節日（部分）
 
 - 農曆新年：2026-01-27 ~ 2026-02-01（官方）
 - 228：2026-02-28（官方）
@@ -261,7 +277,7 @@ OG Image 為靜態（MVP 限制），動態分享靠下載 PNG 圖卡彌補。
 - 中秋節：2026-10-06（官方）
 - 國慶日：2026-10-10（官方）
 
-## 12. 2027 預估節日
+## 13. 2027 預估節日
 
 - 農曆新年：2027-02-06 ~ 2027-02-14（農曆推算，除夕 2/6 週六）
 - 228：2027-02-28（固定日）
