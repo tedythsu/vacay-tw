@@ -34,6 +34,7 @@ export default function App() {
   const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
   const [sortBy, setSortBy] = useState<'cp' | 'date' | 'leave' | 'total'>('cp')
+  const [cpFilter, setCpFilter] = useState<'all' | 'mid' | 'high' | 'vhigh'>('all')
 
   const allStrategies = calculateStrategies(selectedYear, ALL_HOLIDAYS[String(selectedYear)] ?? [])
   // Only keep strategies whose end date is today or in the future
@@ -84,12 +85,14 @@ export default function App() {
     setSheetOpen(false)
     setShowAll(false)
     setShowFreebies(false)
+    setCpFilter('all')
     window.history.replaceState(null, '', location.pathname)
   }
 
   function handleBudgetChange(delta: number) {
     setBudget(prev => Math.max(MIN_BUDGET, Math.min(MAX_BUDGET, prev + delta)))
     setShowAll(false)
+    setCpFilter('all')
   }
 
   function handleSortChange(next: typeof sortBy) {
@@ -97,10 +100,23 @@ export default function App() {
     setShowAll(false)
   }
 
+  function handleCpFilterChange(next: typeof cpFilter) {
+    setCpFilter(next)
+    setShowAll(false)
+  }
+
+  const CP_FILTER_MIN: Record<typeof cpFilter, number> = {
+    all: 0, mid: 2.5, high: 3.0, vhigh: 4.0,
+  }
+
   // ── Budget filtering & sorting ──────────────────────────────────────────────
   const freebies = strategies.filter(s => s.isFreebie)
-  const withinBudget = strategies.filter(s => !s.isFreebie && s.leaveDays <= budget)
-  const upsells = strategies.filter(s => !s.isFreebie && s.leaveDays === budget + 1 && (s.cpValue ?? 0) >= 2.5)
+  const withinBudget = strategies.filter(s =>
+    !s.isFreebie && s.leaveDays <= budget && (s.cpValue ?? 0) >= CP_FILTER_MIN[cpFilter]
+  )
+  const upsells = strategies.filter(s =>
+    !s.isFreebie && s.leaveDays === budget + 1 && (s.cpValue ?? 0) >= Math.max(2.5, CP_FILTER_MIN[cpFilter])
+  )
 
   const paidStrategies = [...withinBudget, ...upsells].sort((a, b) => {
     switch (sortBy) {
@@ -192,6 +208,32 @@ export default function App() {
             </button>
           </div>
           <span className="text-sm text-slate-500">天假，幫我找最佳攻略</span>
+        </div>
+
+        {/* ── CP Filter Pills ─────────────────────────────────────── */}
+        <div className="mb-3">
+          <p className="text-xs text-slate-400 mb-1.5">CP值篩選</p>
+          <div className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
+            {([
+              { key: 'all',   label: '全部' },
+              { key: 'mid',   label: '中以上' },
+              { key: 'high',  label: '高以上' },
+              { key: 'vhigh', label: '極高' },
+            ] as const).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => handleCpFilterChange(key)}
+                className={[
+                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors',
+                  cpFilter === key
+                    ? 'bg-sky-500 text-white'
+                    : 'bg-white border border-slate-200 text-slate-500 hover:border-sky-300 hover:text-sky-500',
+                ].join(' ')}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── Sort Pills ──────────────────────────────────────────── */}
