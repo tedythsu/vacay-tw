@@ -25,6 +25,7 @@ const MAX_BUDGET = 7
 export default function App() {
   const [selectedYear, setSelectedYear] = useState<Year>(2026)
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const [budget, setBudget] = useState(3)
 
@@ -35,6 +36,12 @@ export default function App() {
   const allYearHolidayDates = getAllHolidayDates(
     (holidaysData as Record<string, HolidayEntry[]>)[String(selectedYear)] ?? []
   )
+
+  // Lock body scroll when sheet is open
+  useEffect(() => {
+    document.body.style.overflow = sheetOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [sheetOpen])
 
   // Deep-link initialization: read URL hash on mount
   useEffect(() => {
@@ -53,6 +60,7 @@ export default function App() {
 
     setSelectedYear(year)
     setSelectedStrategy(match)
+    setSheetOpen(true)
 
     requestAnimationFrame(() => {
       document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -61,15 +69,18 @@ export default function App() {
 
   function handleSelectStrategy(strategy: Strategy) {
     setSelectedStrategy(strategy)
+    setSheetOpen(true)
     window.history.replaceState(null, '', '#' + strategy.id)
-    setTimeout(() => {
-      document.getElementById('calendar-preview')?.scrollIntoView({ behavior: 'smooth' })
-    }, 50)
+  }
+
+  function handleCloseSheet() {
+    setSheetOpen(false)
   }
 
   function handleYearChange(year: Year) {
     setSelectedYear(year)
     setSelectedStrategy(null)
+    setSheetOpen(false)
     setShowAll(false)
     window.history.replaceState(null, '', location.pathname)
   }
@@ -80,18 +91,13 @@ export default function App() {
   }
 
   // ── Budget filtering ────────────────────────────────────────────────────────
-  // Tier 1: freebies — always shown, not subject to budget
-  // Tier 2: leaveDays <= budget — sorted by cpValue desc (engine already does this)
-  // Tier 3: leaveDays === budget + 1 — "建議加碼", shown at bottom
   const freebies = strategies.filter(s => s.isFreebie)
   const withinBudget = strategies.filter(s => !s.isFreebie && s.leaveDays <= budget)
   const upsells = strategies.filter(s => !s.isFreebie && s.leaveDays === budget + 1)
   const displayStrategies = [...freebies, ...withinBudget, ...upsells]
 
-  // Build list with AdSlots at positions after index 0 and index 2
   const INITIAL_SHOW = 5
 
-  // Build full list first
   const allListItems: ListItem[] = []
   displayStrategies.forEach((s, i) => {
     allListItems.push({ type: 'strategy', strategy: s })
@@ -100,7 +106,6 @@ export default function App() {
     }
   })
 
-  // Then limit to INITIAL_SHOW strategies if not showing all
   const listItems: ListItem[] = showAll ? allListItems : (() => {
     const result: ListItem[] = []
     let count = 0
@@ -204,44 +209,6 @@ export default function App() {
           </button>
         )}
 
-        {/* ── Calendar Preview ────────────────────────────────────── */}
-        {selectedStrategy && (
-          <div id="calendar-preview" className="mt-4 mb-4">
-            <h2 className="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-1">
-              📅 月曆預覽
-              <span className="text-xs font-normal text-slate-400">— 點選卡片可切換</span>
-            </h2>
-            <Calendar
-              month={selectedStrategy.start.slice(0, 7)}
-              holidayDates={allYearHolidayDates}
-              leaveDates={selectedStrategy.suggestedLeaveDates}
-              weekendDates={selectedStrategy.weekendDates}
-            />
-
-            {/* Share button — triggers ShareCard screenshot (wired in Task 9) */}
-            <button
-              onClick={async () => {
-                const el = document.getElementById('share-card-hidden')
-                if (!el) return
-                try {
-                  await document.fonts.ready
-                  const { toPng } = await import('html-to-image')
-                  const dataUrl = await toPng(el, { pixelRatio: 2, cacheBust: true })
-                  const link = document.createElement('a')
-                  link.download = `vacay-${selectedStrategy.id}.png`
-                  link.href = dataUrl
-                  link.click()
-                } catch (err) {
-                  console.error('[share] toPng failed', err)
-                }
-              }}
-              className="w-full mt-3 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white rounded-xl py-3.5 font-semibold text-sm transition-colors"
-            >
-              📤 分享這個攻略
-            </button>
-          </div>
-        )}
-
         {/* ── Footer ─────────────────────────────────────────────── */}
         <footer className="py-6 border-t border-slate-100 text-center space-y-1">
           <p className="text-xs text-slate-400">
@@ -250,6 +217,92 @@ export default function App() {
           <p className="text-xs text-slate-300">© 2026 vacay.tw</p>
         </footer>
       </div>
+
+      {/* ── Calendar Bottom Sheet ───────────────────────────────── */}
+      {selectedStrategy && (
+        <>
+          {/* Backdrop */}
+          <div
+            className={[
+              'fixed inset-0 bg-black/40 z-40 transition-opacity duration-300',
+              sheetOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
+            ].join(' ')}
+            onClick={handleCloseSheet}
+            aria-hidden="true"
+          />
+
+          {/* Sheet */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="月曆預覽"
+            className={[
+              'fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl',
+              'transition-transform duration-300 ease-out',
+              'max-h-[88vh] flex flex-col',
+              sheetOpen ? 'translate-y-0' : 'translate-y-full',
+            ].join(' ')}
+          >
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-1 shrink-0">
+              <div className="w-10 h-1 bg-slate-200 rounded-full" />
+            </div>
+
+            {/* Sheet header */}
+            <div className="flex items-center justify-between px-5 py-3 shrink-0">
+              <div>
+                <p className="text-base font-bold text-slate-900 leading-tight">
+                  {selectedStrategy.name}
+                </p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {selectedStrategy.start} → {selectedStrategy.end}
+                  　·　共 {selectedStrategy.totalDays} 天
+                </p>
+              </div>
+              <button
+                onClick={handleCloseSheet}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-lg leading-none transition-colors"
+                aria-label="關閉"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="overflow-y-auto px-5 pb-6 flex-1">
+              <Calendar
+                key={selectedStrategy.id}
+                month={selectedStrategy.start.slice(0, 7)}
+                holidayDates={allYearHolidayDates}
+                leaveDates={selectedStrategy.suggestedLeaveDates}
+                weekendDates={selectedStrategy.weekendDates}
+              />
+
+              <button
+                onClick={async () => {
+                  const el = document.getElementById('share-card-hidden')
+                  if (!el) return
+                  try {
+                    await document.fonts.ready
+                    const { toPng } = await import('html-to-image')
+                    const dataUrl = await toPng(el, { pixelRatio: 2, cacheBust: true })
+                    const link = document.createElement('a')
+                    link.download = `vacay-${selectedStrategy.id}.png`
+                    link.href = dataUrl
+                    link.click()
+                  } catch (err) {
+                    console.error('[share] toPng failed', err)
+                  }
+                }}
+                className="w-full mt-4 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white rounded-xl py-3.5 font-semibold text-sm transition-colors"
+              >
+                📤 分享這個攻略
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Hidden share card for screenshot */}
       {selectedStrategy && <ShareCard strategy={selectedStrategy} />}
     </div>

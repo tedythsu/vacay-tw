@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   addMonths,
   subMonths,
@@ -23,6 +23,10 @@ const DAY_LABELS = ['日', '一', '二', '三', '四', '五', '六']
 
 export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Props) {
   const [current, setCurrent] = useState(() => new Date(month + '-01T00:00:00'))
+
+  useEffect(() => {
+    setCurrent(new Date(month + '-01T00:00:00'))
+  }, [month])
 
   const holidaySet = new Set(holidayDates)
   const leaveSet = new Set(leaveDates)

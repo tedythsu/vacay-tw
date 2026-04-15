@@ -186,7 +186,10 @@ function buildStrategy(
 
   const slugBase = slugify(holiday.name)
   const comboSuffix = isSuperCombo ? '-super-combo' : ''
-  const id = idOverride ?? `${slugBase}-${year}${comboSuffix}`
+  // Freebies use the clean slug (one per holiday, always unique).
+  // Non-freebies append MMdd range so each leave-extension variant gets a unique id.
+  const rangeSuffix = leaveDays === 0 ? '' : `-${format(expStart, 'MMdd')}-${format(expEnd, 'MMdd')}`
+  const id = idOverride ?? `${slugBase}-${year}${comboSuffix}${rangeSuffix}`
 
   return {
     id,

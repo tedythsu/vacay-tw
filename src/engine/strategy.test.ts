@@ -170,6 +170,12 @@ describe('calculateStrategies', () => {
     }
   })
 
+  it('all strategy ids are unique', () => {
+    const result = calculateStrategies(2026, testHolidays2026)
+    const ids = result.map(s => s.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
   it('detects 中秋+國慶 super combo and preserves isSuperCombo through dedup', () => {
     // expandRange causes the 中秋 +3-back extension to produce the same [Oct 6, Oct 12] range
     // as the explicit super combo. The dedup tie-break must prefer isSuperCombo: true so the
