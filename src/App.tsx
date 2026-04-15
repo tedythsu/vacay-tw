@@ -100,7 +100,7 @@ export default function App() {
   // ── Budget filtering & sorting ──────────────────────────────────────────────
   const freebies = strategies.filter(s => s.isFreebie)
   const withinBudget = strategies.filter(s => !s.isFreebie && s.leaveDays <= budget)
-  const upsells = strategies.filter(s => !s.isFreebie && s.leaveDays === budget + 1)
+  const upsells = strategies.filter(s => !s.isFreebie && s.leaveDays === budget + 1 && (s.cpValue ?? 0) >= 2.5)
 
   const paidStrategies = [...withinBudget, ...upsells].sort((a, b) => {
     switch (sortBy) {
