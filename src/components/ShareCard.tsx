@@ -69,11 +69,6 @@ export function ShareCard({ strategy }: Props) {
       <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '16px', marginBottom: '14px' }}>
         <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>
           {strategy.name} · {strategy.year}
-          {!strategy.isOfficial && (
-            <span style={{ marginLeft: '6px', background: '#fef9c3', color: '#854d0e', borderRadius: '4px', padding: '1px 6px', fontSize: '10px' }}>
-              預估
-            </span>
-          )}
         </div>
 
         {strategy.isFreebie ? (

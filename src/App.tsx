@@ -12,12 +12,8 @@ type ListItem =
   | { type: 'strategy'; strategy: ReturnType<typeof calculateStrategies>[number] }
   | { type: 'ad'; key: string }
 
-// Only years where at least one entry is officially confirmed
 const ALL_HOLIDAYS = holidaysData as Record<string, HolidayEntry[]>
-const confirmedYears = Object.entries(ALL_HOLIDAYS)
-  .filter(([, entries]) => entries.some(e => e.is_official))
-  .map(([y]) => Number(y))
-  .sort()
+const confirmedYears = Object.keys(ALL_HOLIDAYS).map(Number).sort()
 
 function yearOfStrategyId(id: string): number | null {
   const m = id.match(/(\d{4})/)

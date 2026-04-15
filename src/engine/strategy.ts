@@ -17,7 +17,6 @@ export interface HolidayEntry {
   start: string
   end: string
   type: HolidayType
-  is_official: boolean
 }
 
 export interface Strategy {
@@ -33,7 +32,6 @@ export interface Strategy {
   holidayDates: string[]
   weekendDates: string[]
   isFreebie: boolean
-  isOfficial: boolean
   isSuperCombo: boolean
 }
 
@@ -204,7 +202,6 @@ function buildStrategy(
     holidayDates,
     weekendDates,
     isFreebie,
-    isOfficial: holiday.is_official,
     isSuperCombo,
   }
 }
@@ -296,7 +293,6 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
           ...h1,
           name: `${h1.name.replace(/（.*?）/g, '').trim()}+${h2.name.replace(/（.*?）/g, '').trim()}`,
           end: h2.end,
-          is_official: h1.is_official && h2.is_official,
         }
 
         const h1Slug = slugify(h1.name)

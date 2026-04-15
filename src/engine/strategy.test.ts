@@ -195,16 +195,14 @@ describe('calculateStrategies', () => {
         start: '2026-06-19',  // Friday
         end: '2026-06-19',
         type: 'holiday',
-        is_official: true,
-      },
+        },
       {
         name: '端午節（補班）',
         nameEn: 'Makeup Day',
         start: '2026-06-13',  // Saturday before the holiday
         end: '2026-06-13',
         type: 'makeup_work',
-        is_official: true,
-      },
+        },
     ]
     const result = calculateStrategies(2026, syntheticHolidays)
     // Any strategy spanning June 13 must count it as a leave day

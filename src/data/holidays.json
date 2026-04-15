@@ -5,138 +5,63 @@
       "nameEn": "New Year's Day",
       "start": "2026-01-01",
       "end": "2026-01-01",
-      "type": "holiday",
-      "is_official": true
+      "type": "holiday"
     },
     {
       "name": "農曆新年",
       "nameEn": "Lunar New Year",
       "start": "2026-02-14",
       "end": "2026-02-22",
-      "type": "holiday",
-      "is_official": true
+      "type": "holiday"
     },
     {
       "name": "和平紀念日",
       "nameEn": "Peace Memorial Day",
       "start": "2026-02-27",
       "end": "2026-02-28",
-      "type": "holiday",
-      "is_official": true
+      "type": "holiday"
     },
     {
       "name": "兒童節",
       "nameEn": "Children's Day",
       "start": "2026-04-03",
       "end": "2026-04-04",
-      "type": "holiday",
-      "is_official": true
+      "type": "holiday"
     },
     {
       "name": "清明節",
       "nameEn": "Tomb Sweeping Day",
       "start": "2026-04-05",
       "end": "2026-04-06",
-      "type": "holiday",
-      "is_official": true
+      "type": "holiday"
     },
     {
       "name": "勞動節",
       "nameEn": "Labor Day",
       "start": "2026-05-01",
       "end": "2026-05-01",
-      "type": "holiday",
-      "is_official": true
+      "type": "holiday"
     },
     {
       "name": "端午節",
       "nameEn": "Dragon Boat Festival",
       "start": "2026-06-19",
       "end": "2026-06-19",
-      "type": "holiday",
-      "is_official": true
+      "type": "holiday"
     },
     {
       "name": "中秋節",
       "nameEn": "Mid-Autumn Festival",
       "start": "2026-09-25",
       "end": "2026-09-28",
-      "type": "holiday",
-      "is_official": true
+      "type": "holiday"
     },
     {
       "name": "國慶日",
       "nameEn": "National Day",
       "start": "2026-10-09",
       "end": "2026-10-10",
-      "type": "holiday",
-      "is_official": true
-    }
-  ],
-  "2027": [
-    {
-      "name": "元旦",
-      "nameEn": "New Year's Day",
-      "start": "2027-01-01",
-      "end": "2027-01-01",
-      "type": "holiday",
-      "is_official": false
-    },
-    {
-      "name": "農曆新年",
-      "nameEn": "Lunar New Year",
-      "start": "2027-02-06",
-      "end": "2027-02-14",
-      "type": "holiday",
-      "is_official": false
-    },
-    {
-      "name": "和平紀念日",
-      "nameEn": "Peace Memorial Day",
-      "start": "2027-02-28",
-      "end": "2027-02-28",
-      "type": "holiday",
-      "is_official": false
-    },
-    {
-      "name": "兒童節",
-      "nameEn": "Children's Day",
-      "start": "2027-04-04",
-      "end": "2027-04-04",
-      "type": "holiday",
-      "is_official": false
-    },
-    {
-      "name": "勞動節",
-      "nameEn": "Labor Day",
-      "start": "2027-05-01",
-      "end": "2027-05-01",
-      "type": "holiday",
-      "is_official": false
-    },
-    {
-      "name": "端午節",
-      "nameEn": "Dragon Boat Festival",
-      "start": "2027-06-09",
-      "end": "2027-06-09",
-      "type": "holiday",
-      "is_official": false
-    },
-    {
-      "name": "中秋節",
-      "nameEn": "Mid-Autumn Festival",
-      "start": "2027-09-25",
-      "end": "2027-09-25",
-      "type": "holiday",
-      "is_official": false
-    },
-    {
-      "name": "國慶日",
-      "nameEn": "National Day",
-      "start": "2027-10-10",
-      "end": "2027-10-10",
-      "type": "holiday",
-      "is_official": false
+      "type": "holiday"
     }
   ]
 }

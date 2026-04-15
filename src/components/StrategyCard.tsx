@@ -26,11 +26,6 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell }: Props
     >
       {/* Badges */}
       <div className="flex gap-1.5 flex-wrap mb-2">
-        {!strategy.isOfficial && (
-          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-medium">
-            預估
-          </span>
-        )}
         {strategy.isSuperCombo && (
           <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
             大禮包
