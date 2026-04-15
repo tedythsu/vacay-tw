@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { calculateStrategies } from './engine/strategy'
+import { calculateStrategies, getAllHolidayDates } from './engine/strategy'
 import { StrategyCard } from './components/StrategyCard'
 import { Calendar } from './components/Calendar'
 import { AdSlot } from './components/AdSlot'
@@ -22,10 +22,14 @@ function parseYearFromId(id: string): Year | null {
 export default function App() {
   const [selectedYear, setSelectedYear] = useState<Year>(2026)
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null)
+  const [showAll, setShowAll] = useState(false)
 
   const strategies = calculateStrategies(
     selectedYear,
     (holidaysData as Record<string, HolidayEntry[]>)[String(selectedYear)]
+  )
+  const allYearHolidayDates = getAllHolidayDates(
+    (holidaysData as Record<string, HolidayEntry[]>)[String(selectedYear)] ?? []
   )
 
   // Deep-link initialization: read URL hash on mount
@@ -62,17 +66,33 @@ export default function App() {
   function handleYearChange(year: Year) {
     setSelectedYear(year)
     setSelectedStrategy(null)
+    setShowAll(false)
     window.history.replaceState(null, '', location.pathname)
   }
 
   // Build list with AdSlots at positions after index 0 and index 2
-  const listItems: ListItem[] = []
+  const INITIAL_SHOW = 5
+
+  // Build full list first
+  const allListItems: ListItem[] = []
   strategies.forEach((s, i) => {
-    listItems.push({ type: 'strategy', strategy: s })
+    allListItems.push({ type: 'strategy', strategy: s })
     if (i === 0 || i === 2) {
-      listItems.push({ type: 'ad', key: `ad-${i}` })
+      allListItems.push({ type: 'ad', key: `ad-${i}` })
     }
   })
+
+  // Then limit to INITIAL_SHOW strategies if not showing all
+  const listItems: ListItem[] = showAll ? allListItems : (() => {
+    const result: ListItem[] = []
+    let count = 0
+    for (const item of allListItems) {
+      if (count >= INITIAL_SHOW) break
+      result.push(item)
+      if (item.type === 'strategy') count++
+    }
+    return result
+  })()
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
@@ -128,6 +148,16 @@ export default function App() {
           )}
         </div>
 
+        {/* Show more button */}
+        {!showAll && strategies.length > INITIAL_SHOW && (
+          <button
+            onClick={() => setShowAll(true)}
+            className="w-full py-3 text-sm text-slate-500 hover:text-sky-500 border border-dashed border-slate-200 rounded-2xl transition-colors mt-1 mb-2"
+          >
+            顯示全部 {strategies.length} 個攻略 ↓
+          </button>
+        )}
+
         {/* ── Calendar Preview ────────────────────────────────────── */}
         {selectedStrategy && (
           <div id="calendar-preview" className="mt-4 mb-4">
@@ -137,7 +167,7 @@ export default function App() {
             </h2>
             <Calendar
               month={selectedStrategy.start.slice(0, 7)}
-              holidayDates={selectedStrategy.holidayDates}
+              holidayDates={allYearHolidayDates}
               leaveDates={selectedStrategy.suggestedLeaveDates}
               weekendDates={selectedStrategy.weekendDates}
             />

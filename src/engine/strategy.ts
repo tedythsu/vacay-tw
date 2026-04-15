@@ -111,6 +111,37 @@ export function expandWeekends(start: Date, end: Date): { start: Date; end: Date
   return { start: s, end: e }
 }
 
+/**
+ * Like expandWeekends but also absorbs adjacent holiday dates.
+ * Used internally for base range computation so adjacent holidays
+ * (e.g. 兒童節 Apr 6 + 清明節 Apr 7) collapse into one block.
+ * Makeup workday dates are NOT absorbed even if they fall on a weekend.
+ */
+function expandRange(
+  start: Date,
+  end: Date,
+  allHolidayDates: Set<string>,
+  makeupDates: Set<string>
+): { start: Date; end: Date } {
+  let s = start
+  while (true) {
+    const prev = subDays(s, 1)
+    const prevStr = format(prev, 'yyyy-MM-dd')
+    if ((isWeekend(prev) && !makeupDates.has(prevStr)) || allHolidayDates.has(prevStr)) {
+      s = prev
+    } else break
+  }
+  let e = end
+  while (true) {
+    const next = addDays(e, 1)
+    const nextStr = format(next, 'yyyy-MM-dd')
+    if ((isWeekend(next) && !makeupDates.has(nextStr)) || allHolidayDates.has(nextStr)) {
+      e = next
+    } else break
+  }
+  return { start: s, end: e }
+}
+
 // ─── Strategy Builder ─────────────────────────────────────────────────────────
 
 function buildStrategy(
@@ -123,7 +154,7 @@ function buildStrategy(
   isSuperCombo: boolean,
   idOverride?: string
 ): Strategy | null {
-  const { start: expStart, end: expEnd } = expandWeekends(rangeStart, rangeEnd)
+  const { start: expStart, end: expEnd } = expandRange(rangeStart, rangeEnd, allHolidayDates, makeupDates)
   const { leaveDays, suggestedLeaveDates } = calculateEffectiveLeave(
     expStart,
     expEnd,
@@ -200,7 +231,7 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
   for (const holiday of regularHolidays) {
     const hStart = parseISO(holiday.start)
     const hEnd = parseISO(holiday.end)
-    const { start: baseStart, end: baseEnd } = expandWeekends(hStart, hEnd)
+    const { start: baseStart, end: baseEnd } = expandRange(hStart, hEnd, allHolidayDates, makeupDates)
 
     // Freebie: just the holiday + adjacent weekends, no leave taken
     const freebie = buildStrategy(holiday, baseStart, baseEnd, allHolidayDates, makeupDates, year, false)
@@ -255,8 +286,8 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
       }
 
       if (gapWorkdays > 0 && gapWorkdays <= 3) {
-        const { start: comboStart } = expandWeekends(parseISO(h1.start), parseISO(h1.end))
-        const { end: comboEnd } = expandWeekends(parseISO(h2.start), parseISO(h2.end))
+        const { start: comboStart } = expandRange(parseISO(h1.start), parseISO(h1.end), allHolidayDates, makeupDates)
+        const { end: comboEnd } = expandRange(parseISO(h2.start), parseISO(h2.end), allHolidayDates, makeupDates)
 
         const comboEntry: HolidayEntry = {
           ...h1,
@@ -306,4 +337,20 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
     if (!a.isFreebie && b.isFreebie) return 1
     return (b.cpValue ?? 0) - (a.cpValue ?? 0)
   })
+}
+
+/**
+ * Returns all date strings (yyyy-MM-dd) for all official holiday entries
+ * in a given year's holiday list. Used to populate the Calendar with
+ * year-wide holiday markers.
+ */
+export function getAllHolidayDates(holidays: HolidayEntry[]): string[] {
+  const dates: string[] = []
+  for (const h of holidays) {
+    if (h.type !== 'holiday') continue
+    for (const day of eachDayOfInterval({ start: parseISO(h.start), end: parseISO(h.end) })) {
+      dates.push(format(day, 'yyyy-MM-dd'))
+    }
+  }
+  return dates
 }
