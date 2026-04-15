@@ -27,6 +27,7 @@ export default function App() {
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
+  const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
 
   const strategies = calculateStrategies(
@@ -82,6 +83,7 @@ export default function App() {
     setSelectedStrategy(null)
     setSheetOpen(false)
     setShowAll(false)
+    setShowFreebies(false)
     window.history.replaceState(null, '', location.pathname)
   }
 
@@ -91,25 +93,26 @@ export default function App() {
   }
 
   // ── Budget filtering ────────────────────────────────────────────────────────
+  // Paid strategies shown first; freebies collapsed at the bottom
   const freebies = strategies.filter(s => s.isFreebie)
   const withinBudget = strategies.filter(s => !s.isFreebie && s.leaveDays <= budget)
   const upsells = strategies.filter(s => !s.isFreebie && s.leaveDays === budget + 1)
-  const displayStrategies = [...freebies, ...withinBudget, ...upsells]
+  const paidStrategies = [...withinBudget, ...upsells]
 
   const INITIAL_SHOW = 5
 
-  const allListItems: ListItem[] = []
-  displayStrategies.forEach((s, i) => {
-    allListItems.push({ type: 'strategy', strategy: s })
+  const allPaidItems: ListItem[] = []
+  paidStrategies.forEach((s, i) => {
+    allPaidItems.push({ type: 'strategy', strategy: s })
     if (i === 0 || i === 2) {
-      allListItems.push({ type: 'ad', key: `ad-${i}` })
+      allPaidItems.push({ type: 'ad', key: `ad-${i}` })
     }
   })
 
-  const listItems: ListItem[] = showAll ? allListItems : (() => {
+  const paidItems: ListItem[] = showAll ? allPaidItems : (() => {
     const result: ListItem[] = []
     let count = 0
-    for (const item of allListItems) {
+    for (const item of allPaidItems) {
       if (count >= INITIAL_SHOW) break
       result.push(item)
       if (item.type === 'strategy') count++
@@ -181,9 +184,9 @@ export default function App() {
           <span className="text-sm text-slate-500">天假，幫我找最佳攻略</span>
         </div>
 
-        {/* ── Strategy List ───────────────────────────────────────── */}
+        {/* ── Paid Strategy List ──────────────────────────────────── */}
         <div className="space-y-3 pb-2">
-          {listItems.map(item =>
+          {paidItems.map(item =>
             item.type === 'ad' ? (
               <AdSlot key={item.key} />
             ) : (
@@ -200,13 +203,42 @@ export default function App() {
         </div>
 
         {/* Show more button */}
-        {!showAll && displayStrategies.length > INITIAL_SHOW && (
+        {!showAll && paidStrategies.length > INITIAL_SHOW && (
           <button
             onClick={() => setShowAll(true)}
             className="w-full py-3 text-sm text-slate-500 hover:text-sky-500 border border-dashed border-slate-200 rounded-2xl transition-colors mt-1 mb-2"
           >
-            顯示全部 {displayStrategies.length} 個攻略 ↓
+            顯示全部 {paidStrategies.length} 個攻略 ↓
           </button>
+        )}
+
+        {/* ── Freebies (collapsible) ───────────────────────────────── */}
+        {freebies.length > 0 && (
+          <div className="mt-2 mb-2">
+            <button
+              onClick={() => setShowFreebies(prev => !prev)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              <span className="font-medium">免請假連假（{freebies.length} 個）</span>
+              <span className={['text-slate-400 transition-transform duration-200', showFreebies ? 'rotate-180' : ''].join(' ')}>
+                ▾
+              </span>
+            </button>
+            {showFreebies && (
+              <div className="space-y-3 mt-2">
+                {freebies.map(s => (
+                  <div key={s.id} id={s.id}>
+                    <StrategyCard
+                      strategy={s}
+                      isSelected={selectedStrategy?.id === s.id}
+                      isUpsell={false}
+                      onSelect={() => handleSelectStrategy(s)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {/* ── Footer ─────────────────────────────────────────────── */}
