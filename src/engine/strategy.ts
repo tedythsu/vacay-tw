@@ -55,7 +55,7 @@ export function slugify(name: string): string {
   // Strip suffixes like （補假）（補班）
   const base = name.replace(/（.*?）/g, '').trim()
   const fallback = base.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-  if (process.env.NODE_ENV !== 'production' && !SLUG_MAP[base] && !fallback && base) {
+  if (import.meta.env.MODE !== 'production' && !SLUG_MAP[base] && !fallback && base) {
     console.warn(`[slugify] No slug for: "${base}" — add to SLUG_MAP`)
   }
   return SLUG_MAP[base] ?? (fallback || `unknown-${Date.now()}`)
