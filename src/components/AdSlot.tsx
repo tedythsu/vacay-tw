@@ -5,7 +5,10 @@
  * 3. Add the AdSense <script> to index.html
  * 4. Call (adsbygoogle = window.adsbygoogle || []).push({}) after mount
  */
+const AD_ENABLED = false  // flip to true when AdSense is configured
+
 export function AdSlot() {
+  if (!AD_ENABLED) return null
   return (
     <div className="w-full min-h-[250px] rounded-xl overflow-hidden">
       <ins
