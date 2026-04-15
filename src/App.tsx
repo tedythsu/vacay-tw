@@ -34,6 +34,7 @@ export default function App() {
   const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
   const [sortBy, setSortBy] = useState<'cp' | 'date' | 'leave' | 'total'>('cp')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [cpFilter, setCpFilter] = useState<'all' | 'mid' | 'high' | 'vhigh'>('all')
 
   const allStrategies = calculateStrategies(selectedYear, ALL_HOLIDAYS[String(selectedYear)] ?? [])
@@ -95,8 +96,17 @@ export default function App() {
     setCpFilter('all')
   }
 
+  const DEFAULT_SORT_DIR: Record<typeof sortBy, 'asc' | 'desc'> = {
+    cp: 'desc', date: 'asc', leave: 'asc', total: 'desc',
+  }
+
   function handleSortChange(next: typeof sortBy) {
-    setSortBy(next)
+    if (next === sortBy) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortBy(next)
+      setSortDir(DEFAULT_SORT_DIR[next])
+    }
     setShowAll(false)
   }
 
@@ -119,12 +129,13 @@ export default function App() {
   )
 
   const paidStrategies = [...withinBudget, ...upsells].sort((a, b) => {
+    const dir = sortDir === 'asc' ? 1 : -1
     switch (sortBy) {
-      case 'date':  return a.start.localeCompare(b.start)
-      case 'leave': return a.leaveDays - b.leaveDays
-      case 'total': return b.totalDays - a.totalDays
+      case 'date':  return dir * a.start.localeCompare(b.start)
+      case 'leave': return dir * (a.leaveDays - b.leaveDays)
+      case 'total': return dir * (a.totalDays - b.totalDays)
       case 'cp':
-      default:      return (b.cpValue ?? 0) - (a.cpValue ?? 0)
+      default:      return dir * ((a.cpValue ?? 0) - (b.cpValue ?? 0))
     }
   })
 
@@ -250,13 +261,16 @@ export default function App() {
                 key={key}
                 onClick={() => handleSortChange(key)}
                 className={[
-                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors',
+                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors flex items-center gap-1',
                   sortBy === key
                     ? 'bg-sky-500 text-white'
                     : 'bg-white border border-slate-200 text-slate-500 hover:border-sky-300 hover:text-sky-500',
                 ].join(' ')}
               >
                 {label}
+                {sortBy === key && (
+                  <span className="text-[10px] leading-none">{sortDir === 'asc' ? '↑' : '↓'}</span>
+                )}
               </button>
             ))}
           </div>

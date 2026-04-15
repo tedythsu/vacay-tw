@@ -47,6 +47,9 @@ const SLUG_MAP: Record<string, string> = {
   '中秋節': 'mid-autumn-festival',
   '國慶日': 'national-day',
   '元旦': 'new-years-day',
+  '教師節': 'teachers-day',
+  '光復節': 'retrocession-day',
+  '行憲紀念日': 'constitution-day',
 }
 
 export function slugify(name: string): string {
