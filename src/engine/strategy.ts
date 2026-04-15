@@ -325,7 +325,8 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
     } else {
       const sCP = s.cpValue ?? -1
       const exCP = existing.cpValue ?? -1
-      if (sCP > exCP) {
+      // Prefer higher CP; on ties, prefer isSuperCombo so the 大禮包 badge survives dedup
+      if (sCP > exCP || (sCP === exCP && s.isSuperCombo && !existing.isSuperCombo)) {
         seen.set(key, s)
       }
     }

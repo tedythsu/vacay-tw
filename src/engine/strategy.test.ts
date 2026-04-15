@@ -170,13 +170,14 @@ describe('calculateStrategies', () => {
     }
   })
 
-  it('detects combined 中秋+國慶 range when gap is <= 3 workdays', () => {
-    // With expandRange, the 3-workday gap (Oct 7-9) between 中秋 (Oct 6) and 國慶 (Oct 10-12)
-    // is bridged by individual holiday extensions — the combined Oct 6–Oct 12 range appears
-    // as a regular strategy (dedup may absorb the explicit super-combo entry).
+  it('detects 中秋+國慶 super combo and preserves isSuperCombo through dedup', () => {
+    // expandRange causes the 中秋 +3-back extension to produce the same [Oct 6, Oct 12] range
+    // as the explicit super combo. The dedup tie-break must prefer isSuperCombo: true so the
+    // 大禮包 badge survives.
     const result = calculateStrategies(2026, testHolidays2026)
-    const combinedRange = result.find(s => s.start === '2026-10-06' && s.end === '2026-10-12')
-    expect(combinedRange).toBeDefined()
+    const combo = result.find(s => s.start === '2026-10-06' && s.end === '2026-10-12')
+    expect(combo).toBeDefined()
+    expect(combo?.isSuperCombo).toBe(true)
   })
 
   it('makeup workday in leave range is counted as a leave day', () => {
