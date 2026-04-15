@@ -195,26 +195,29 @@ export default function App() {
         </div>
 
         {/* ── Sort Pills ──────────────────────────────────────────── */}
-        <div className="flex gap-2 mb-3 overflow-x-auto pb-0.5 no-scrollbar">
-          {([
-            { key: 'cp',    label: 'CP值' },
-            { key: 'date',  label: '日期' },
-            { key: 'leave', label: '請假天數' },
-            { key: 'total', label: '連休天數' },
-          ] as const).map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => handleSortChange(key)}
-              className={[
-                'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors',
-                sortBy === key
-                  ? 'bg-sky-500 text-white'
-                  : 'bg-white border border-slate-200 text-slate-500 hover:border-sky-300 hover:text-sky-500',
-              ].join(' ')}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="mb-3">
+          <p className="text-xs text-slate-400 mb-1.5">排序方式</p>
+          <div className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
+            {([
+              { key: 'cp',    label: 'CP值' },
+              { key: 'date',  label: '日期' },
+              { key: 'leave', label: '請假天數' },
+              { key: 'total', label: '連休天數' },
+            ] as const).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => handleSortChange(key)}
+                className={[
+                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors',
+                  sortBy === key
+                    ? 'bg-sky-500 text-white'
+                    : 'bg-white border border-slate-200 text-slate-500 hover:border-sky-300 hover:text-sky-500',
+                ].join(' ')}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── Paid Strategy List ──────────────────────────────────── */}
