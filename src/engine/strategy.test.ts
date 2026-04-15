@@ -81,7 +81,6 @@ const testHolidays2026: HolidayEntry[] = [
     start: '2026-02-16',
     end: '2026-02-22',
     type: 'holiday',
-    is_official: true,
   },
   {
     name: '農曆新年（補班）',
@@ -89,7 +88,6 @@ const testHolidays2026: HolidayEntry[] = [
     start: '2026-02-07',
     end: '2026-02-07',
     type: 'makeup_work',
-    is_official: true,
   },
   {
     name: '中秋節',
@@ -97,7 +95,6 @@ const testHolidays2026: HolidayEntry[] = [
     start: '2026-10-06',
     end: '2026-10-06',
     type: 'holiday',
-    is_official: true,
   },
   {
     name: '國慶日',
@@ -105,7 +102,6 @@ const testHolidays2026: HolidayEntry[] = [
     start: '2026-10-10',
     end: '2026-10-10',
     type: 'holiday',
-    is_official: true,
   },
   {
     name: '國慶日（補假）',
@@ -113,7 +109,6 @@ const testHolidays2026: HolidayEntry[] = [
     start: '2026-10-12',
     end: '2026-10-12',
     type: 'holiday',
-    is_official: true,
   },
 ]
 
