@@ -31,6 +31,7 @@ export default function App() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const [showFreebies, setShowFreebies] = useState(false)
+  const [showUpsells, setShowUpsells] = useState(false)
   const [budget, setBudget] = useState(3)
   const [sortBy, setSortBy] = useState<'cp' | 'date' | 'leave' | 'total'>('cp')
   const [shareCopied, setShareCopied] = useState(false)
@@ -88,6 +89,7 @@ export default function App() {
     setSheetOpen(false)
     setShowAll(false)
     setShowFreebies(false)
+    setShowUpsells(false)
     setCpFilter('all')
     window.history.replaceState(null, '', location.pathname)
   }
@@ -95,6 +97,7 @@ export default function App() {
   function handleBudgetChange(delta: number) {
     setBudget(prev => Math.max(MIN_BUDGET, Math.min(MAX_BUDGET, prev + delta)))
     setShowAll(false)
+    setShowUpsells(false)
     setCpFilter('all')
   }
 
@@ -134,7 +137,7 @@ export default function App() {
     ? Math.max(...withinBudget.map(s => s.cpValue ?? 0))
     : -Infinity
 
-  const paidStrategies = [...withinBudget, ...upsells].sort((a, b) => {
+  const sortFn = (a: typeof withinBudget[number], b: typeof withinBudget[number]) => {
     const dir = sortDir === 'asc' ? 1 : -1
     switch (sortBy) {
       case 'date':  return dir * a.start.localeCompare(b.start)
@@ -143,7 +146,10 @@ export default function App() {
       case 'cp':
       default:      return dir * ((a.cpValue ?? 0) - (b.cpValue ?? 0))
     }
-  })
+  }
+
+  const paidStrategies = [...withinBudget].sort(sortFn)
+  const upsellStrategies = [...upsells].sort(sortFn)
 
   const INITIAL_SHOW = 5
 
@@ -292,8 +298,8 @@ export default function App() {
                 <StrategyCard
                   strategy={item.strategy}
                   isSelected={selectedStrategy?.id === item.strategy.id}
-                  isUpsell={!item.strategy.isFreebie && item.strategy.leaveDays === budget + 1}
-                  isBest={!item.strategy.isFreebie && item.strategy.leaveDays <= budget && item.strategy.cpValue === bestCp}
+                  isUpsell={false}
+                  isBest={item.strategy.cpValue === bestCp}
                   onSelect={() => handleSelectStrategy(item.strategy)}
                 />
               </div>
@@ -307,8 +313,38 @@ export default function App() {
             onClick={() => setShowAll(true)}
             className="w-full py-3 text-sm text-slate-500 hover:text-sky-500 border border-dashed border-slate-200 rounded-2xl transition-colors mt-1 mb-2"
           >
-            顯示全部 {paidStrategies.length} 個攻略 ↓
+            顯示全部 {paidStrategies.length} 個方案 ↓
           </button>
+        )}
+
+        {/* ── Upsells (collapsible) ────────────────────────────────── */}
+        {upsellStrategies.length > 0 && (
+          <div className="mt-2 mb-2">
+            <button
+              onClick={() => setShowUpsells(prev => !prev)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-white border border-dashed border-orange-200 rounded-2xl text-sm text-slate-600 hover:bg-orange-50 transition-colors"
+            >
+              <span className="font-medium">建議加碼（{upsellStrategies.length} 個）</span>
+              <span className={['text-slate-400 transition-transform duration-200', showUpsells ? 'rotate-180' : ''].join(' ')}>
+                ▾
+              </span>
+            </button>
+            {showUpsells && (
+              <div className="space-y-3 mt-2">
+                {upsellStrategies.map(s => (
+                  <div key={s.id} id={s.id}>
+                    <StrategyCard
+                      strategy={s}
+                      isSelected={selectedStrategy?.id === s.id}
+                      isUpsell={true}
+                      isBest={false}
+                      onSelect={() => handleSelectStrategy(s)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {/* ── Freebies (collapsible) ───────────────────────────────── */}
