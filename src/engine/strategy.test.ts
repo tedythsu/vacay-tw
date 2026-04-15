@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { slugify, calculateEffectiveLeave } from './strategy'
+import { calculateStrategies } from './strategy'
+import type { HolidayEntry } from './strategy'
+
 
 describe('slugify', () => {
   it('maps Chinese holiday names to URL-safe slugs', () => {
@@ -67,5 +70,119 @@ describe('calculateEffectiveLeave', () => {
     )
     expect(result.leaveDays).toBe(1)
     expect(result.suggestedLeaveDates).toEqual(['2026-02-07'])
+  })
+})
+
+// Minimal dataset for deterministic testing
+const testHolidays2026: HolidayEntry[] = [
+  {
+    name: '農曆新年',
+    nameEn: 'Lunar New Year',
+    start: '2026-02-16',
+    end: '2026-02-22',
+    type: 'holiday',
+    is_official: true,
+  },
+  {
+    name: '農曆新年（補班）',
+    nameEn: 'Makeup Day',
+    start: '2026-02-07',
+    end: '2026-02-07',
+    type: 'makeup_work',
+    is_official: true,
+  },
+  {
+    name: '中秋節',
+    nameEn: 'Mid-Autumn Festival',
+    start: '2026-10-06',
+    end: '2026-10-06',
+    type: 'holiday',
+    is_official: true,
+  },
+  {
+    name: '國慶日',
+    nameEn: 'National Day',
+    start: '2026-10-10',
+    end: '2026-10-10',
+    type: 'holiday',
+    is_official: true,
+  },
+  {
+    name: '國慶日（補假）',
+    nameEn: 'National Day Substitute',
+    start: '2026-10-12',
+    end: '2026-10-12',
+    type: 'holiday',
+    is_official: true,
+  },
+]
+
+describe('calculateStrategies', () => {
+  it('returns an array of Strategy objects', () => {
+    const result = calculateStrategies(2026, testHolidays2026)
+    expect(Array.isArray(result)).toBe(true)
+    expect(result.length).toBeGreaterThan(0)
+  })
+
+  it('freebie strategies are placed first', () => {
+    const result = calculateStrategies(2026, testHolidays2026)
+    const firstNonFreebie = result.findIndex(s => !s.isFreebie)
+    const lastFreebie = result.reduce((acc, s, i) => (s.isFreebie ? i : acc), -1)
+    if (firstNonFreebie !== -1 && lastFreebie !== -1) {
+      expect(lastFreebie).toBeLessThan(firstNonFreebie)
+    }
+  })
+
+  it('freebie strategies have null cpValue and leaveDays === 0', () => {
+    const result = calculateStrategies(2026, testHolidays2026)
+    for (const s of result.filter(s => s.isFreebie)) {
+      expect(s.cpValue).toBeNull()
+      expect(s.leaveDays).toBe(0)
+    }
+  })
+
+  it('non-freebie strategies have cpValue >= 2.0', () => {
+    const result = calculateStrategies(2026, testHolidays2026)
+    for (const s of result.filter(s => !s.isFreebie)) {
+      expect(s.cpValue).not.toBeNull()
+      expect(s.cpValue!).toBeGreaterThanOrEqual(2.0)
+    }
+  })
+
+  it('non-freebie strategies are sorted by cpValue descending', () => {
+    const result = calculateStrategies(2026, testHolidays2026)
+    const nonFreebies = result.filter(s => !s.isFreebie)
+    for (let i = 0; i < nonFreebies.length - 1; i++) {
+      expect(nonFreebies[i].cpValue!).toBeGreaterThanOrEqual(nonFreebies[i + 1].cpValue!)
+    }
+  })
+
+  it('no duplicate [start, end] ranges', () => {
+    const result = calculateStrategies(2026, testHolidays2026)
+    const keys = result.map(s => `${s.start}|${s.end}`)
+    expect(new Set(keys).size).toBe(keys.length)
+  })
+
+  it('all strategy ids are URL-safe', () => {
+    const result = calculateStrategies(2026, testHolidays2026)
+    for (const s of result) {
+      expect(s.id).toMatch(/^[a-z0-9-]+$/)
+    }
+  })
+
+  it('detects super combo when 中秋 and 國慶 gap is <= 3 workdays', () => {
+    const result = calculateStrategies(2026, testHolidays2026)
+    const superCombos = result.filter(s => s.isSuperCombo)
+    expect(superCombos.length).toBeGreaterThan(0)
+  })
+
+  it('makeup workday in leave range increases leaveDays', () => {
+    const result = calculateStrategies(2026, testHolidays2026)
+    const spansFebruary7 = result.find(
+      s => s.suggestedLeaveDates.includes('2026-02-07')
+    )
+    if (spansFebruary7) {
+      expect(spansFebruary7.leaveDays).toBeGreaterThan(0)
+    }
   })
 })
