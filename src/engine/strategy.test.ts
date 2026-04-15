@@ -176,13 +176,32 @@ describe('calculateStrategies', () => {
     expect(superCombos.length).toBeGreaterThan(0)
   })
 
-  it('makeup workday in leave range increases leaveDays', () => {
-    const result = calculateStrategies(2026, testHolidays2026)
-    const spansFebruary7 = result.find(
-      s => s.suggestedLeaveDates.includes('2026-02-07')
-    )
-    if (spansFebruary7) {
-      expect(spansFebruary7.leaveDays).toBeGreaterThan(0)
+  it('makeup workday in leave range is counted as a leave day', () => {
+    // Holiday on Wednesday; makeup Saturday immediately before the preceding weekend
+    const syntheticHolidays: HolidayEntry[] = [
+      {
+        name: '端午節',
+        nameEn: 'Dragon Boat Festival',
+        start: '2026-06-19',  // Friday
+        end: '2026-06-19',
+        type: 'holiday',
+        is_official: true,
+      },
+      {
+        name: '端午節（補班）',
+        nameEn: 'Makeup Day',
+        start: '2026-06-13',  // Saturday before the holiday
+        end: '2026-06-13',
+        type: 'makeup_work',
+        is_official: true,
+      },
+    ]
+    const result = calculateStrategies(2026, syntheticHolidays)
+    // Any strategy spanning June 13 must count it as a leave day
+    const spansJune13 = result.find(s => s.suggestedLeaveDates.includes('2026-06-13'))
+    if (spansJune13) {
+      expect(spansJune13.leaveDays).toBeGreaterThan(0)
+      expect(spansJune13.suggestedLeaveDates).toContain('2026-06-13')
     }
   })
 })

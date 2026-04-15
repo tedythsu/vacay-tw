@@ -55,7 +55,7 @@ export function slugify(name: string): string {
   // Strip suffixes like （補假）（補班）
   const base = name.replace(/（.*?）/g, '').trim()
   const fallback = base.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-  if (process.env.NODE_ENV !== 'production' && !fallback && base) {
+  if (process.env.NODE_ENV !== 'production' && !SLUG_MAP[base] && !fallback && base) {
     console.warn(`[slugify] No slug for: "${base}" — add to SLUG_MAP`)
   }
   return SLUG_MAP[base] ?? (fallback || `unknown-${Date.now()}`)
@@ -120,7 +120,8 @@ function buildStrategy(
   allHolidayDates: Set<string>,
   makeupDates: Set<string>,
   year: number,
-  isSuperCombo: boolean
+  isSuperCombo: boolean,
+  idOverride?: string
 ): Strategy | null {
   const { start: expStart, end: expEnd } = expandWeekends(rangeStart, rangeEnd)
   const { leaveDays, suggestedLeaveDates } = calculateEffectiveLeave(
@@ -130,16 +131,8 @@ function buildStrategy(
     makeupDates
   )
 
-  // Calculate totalDays, subtracting makeup days in range but NOT taken as leave
   const allDays = eachDayOfInterval({ start: expStart, end: expEnd })
-  const leaveSet = new Set(suggestedLeaveDates)
-  let totalDays = allDays.length
-  for (const day of allDays) {
-    const dateStr = format(day, 'yyyy-MM-dd')
-    if (makeupDates.has(dateStr) && !leaveSet.has(dateStr)) {
-      totalDays -= 1
-    }
-  }
+  const totalDays = allDays.length
 
   if (totalDays <= 0) return null
 
@@ -162,7 +155,7 @@ function buildStrategy(
 
   const slugBase = slugify(holiday.name)
   const comboSuffix = isSuperCombo ? '-super-combo' : ''
-  const id = `${slugBase}-${year}${comboSuffix}`
+  const id = idOverride ?? `${slugBase}-${year}${comboSuffix}`
 
   return {
     id,
@@ -225,7 +218,7 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
         while (remaining > 0) {
           leaveStart = subDays(leaveStart, 1)
           const ds = format(leaveStart, 'yyyy-MM-dd')
-          if (!isWeekend(leaveStart) && !allHolidayDates.has(ds)) remaining--
+          if ((!isWeekend(leaveStart) && !allHolidayDates.has(ds)) || makeupDates.has(ds)) remaining--
         }
 
         // Walk forward from baseEnd to find `back` actual workdays
@@ -234,7 +227,7 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
         while (remaining > 0) {
           leaveEnd = addDays(leaveEnd, 1)
           const ds = format(leaveEnd, 'yyyy-MM-dd')
-          if (!isWeekend(leaveEnd) && !allHolidayDates.has(ds)) remaining--
+          if ((!isWeekend(leaveEnd) && !allHolidayDates.has(ds)) || makeupDates.has(ds)) remaining--
         }
 
         const strategy = buildStrategy(holiday, leaveStart, leaveEnd, allHolidayDates, makeupDates, year, false)
@@ -272,6 +265,10 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
           is_official: h1.is_official && h2.is_official,
         }
 
+        const h1Slug = slugify(h1.name)
+        const h2Slug = slugify(h2.name)
+        const comboId = `${h1Slug}-${h2Slug}-${year}-super-combo`
+
         const superStrategy = buildStrategy(
           comboEntry,
           comboStart,
@@ -279,7 +276,8 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
           allHolidayDates,
           makeupDates,
           year,
-          true
+          true,
+          comboId
         )
         if (superStrategy) strategies.push(superStrategy)
       }
@@ -296,7 +294,7 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
     } else {
       const sCP = s.cpValue ?? -1
       const exCP = existing.cpValue ?? -1
-      if (sCP > exCP || (sCP === exCP && s.start < existing.start)) {
+      if (sCP > exCP) {
         seen.set(key, s)
       }
     }
