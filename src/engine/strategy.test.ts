@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { slugify, calculateEffectiveLeave } from './strategy'
-import type { HolidayEntry } from './strategy'
 
 describe('slugify', () => {
   it('maps Chinese holiday names to URL-safe slugs', () => {

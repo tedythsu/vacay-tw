@@ -53,7 +53,11 @@ const SLUG_MAP: Record<string, string> = {
 export function slugify(name: string): string {
   // Strip suffixes like （補假）（補班）
   const base = name.replace(/（.*?）/g, '').trim()
-  return SLUG_MAP[base] ?? base.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  const fallback = base.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  if (process.env.NODE_ENV !== 'production' && !fallback && base) {
+    console.warn(`[slugify] No slug for: "${base}" — add to SLUG_MAP`)
+  }
+  return SLUG_MAP[base] ?? (fallback || `unknown-${Date.now()}`)
 }
 
 // ─── Core Helpers ─────────────────────────────────────────────────────────────
@@ -88,8 +92,11 @@ export function calculateEffectiveLeave(
 }
 
 /**
- * Expand a date range outward to include adjacent weekends.
- * e.g. if start is Monday and the day before is Sunday, pull start to Sunday.
+ * Expand a date range outward to include adjacent weekends on both sides.
+ * A Saturday input will absorb the following Sunday (and vice versa).
+ * e.g. expandWeekends(Mon, Mon) → { start: Sat, end: Mon }
+ *      expandWeekends(Fri, Fri) → { start: Fri, end: Sun }
+ *      expandWeekends(Sat, Sun) → no change (already at boundaries)
  */
 export function expandWeekends(start: Date, end: Date): { start: Date; end: Date } {
   let s = start
