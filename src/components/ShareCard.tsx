@@ -81,7 +81,7 @@ export function ShareCard({ strategy }: Props) {
               請 {strategy.leaveDays} 天 → 連休 {strategy.totalDays} 天
             </div>
             <div style={{ fontSize: '22px', fontWeight: 900, color: '#0ea5e9', lineHeight: 1.1 }}>
-              {strategy.cpValue! >= 3.5 ? '超划算' : strategy.cpValue! >= 2.8 ? '划算' : '普通'}
+              {strategy.cpValue! >= 4.0 ? '極高' : strategy.cpValue! >= 3.0 ? '高' : strategy.cpValue! >= 2.5 ? '中' : '低'}
             </div>
           </>
         )}
