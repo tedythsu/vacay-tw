@@ -1,42 +1,48 @@
 import { useState, useEffect } from 'react'
+import { format } from 'date-fns'
 import { calculateStrategies, getAllHolidayDates } from './engine/strategy'
 import { StrategyCard } from './components/StrategyCard'
 import { Calendar } from './components/Calendar'
 import { AdSlot } from './components/AdSlot'
 import { ShareCard } from './components/ShareCard'
-import type { Strategy, HolidayEntry } from './engine/strategy'
+import type { HolidayEntry } from './engine/strategy'
 import holidaysData from './data/holidays.json'
 
-type Year = 2026 | 2027
-
 type ListItem =
-  | { type: 'strategy'; strategy: Strategy }
+  | { type: 'strategy'; strategy: ReturnType<typeof calculateStrategies>[number] }
   | { type: 'ad'; key: string }
 
-function parseYearFromId(id: string): Year | null {
-  if (id.endsWith('-2026') || id.includes('-2026-')) return 2026
-  if (id.endsWith('-2027') || id.includes('-2027-')) return 2027
-  return null
+// Only years where at least one entry is officially confirmed
+const ALL_HOLIDAYS = holidaysData as Record<string, HolidayEntry[]>
+const confirmedYears = Object.entries(ALL_HOLIDAYS)
+  .filter(([, entries]) => entries.some(e => e.is_official))
+  .map(([y]) => Number(y))
+  .sort()
+
+function yearOfStrategyId(id: string): number | null {
+  const m = id.match(/(\d{4})/)
+  const y = m ? Number(m[1]) : null
+  return y && confirmedYears.includes(y) ? y : null
 }
 
 const MIN_BUDGET = 1
 const MAX_BUDGET = 7
 
+const today = format(new Date(), 'yyyy-MM-dd')
+
 export default function App() {
-  const [selectedYear, setSelectedYear] = useState<Year>(2026)
-  const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null)
+  const [selectedYear, setSelectedYear] = useState<number>(confirmedYears[0])
+  const [selectedStrategy, setSelectedStrategy] = useState<ReturnType<typeof calculateStrategies>[number] | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [showAll, setShowAll] = useState(false)
   const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
 
-  const strategies = calculateStrategies(
-    selectedYear,
-    (holidaysData as Record<string, HolidayEntry[]>)[String(selectedYear)]
-  )
-  const allYearHolidayDates = getAllHolidayDates(
-    (holidaysData as Record<string, HolidayEntry[]>)[String(selectedYear)] ?? []
-  )
+  const allStrategies = calculateStrategies(selectedYear, ALL_HOLIDAYS[String(selectedYear)] ?? [])
+  // Only keep strategies whose end date is today or in the future
+  const strategies = allStrategies.filter(s => s.end >= today)
+
+  const allYearHolidayDates = getAllHolidayDates(ALL_HOLIDAYS[String(selectedYear)] ?? [])
 
   // Lock body scroll when sheet is open
   useEffect(() => {
@@ -49,13 +55,10 @@ export default function App() {
     const hash = location.hash.slice(1)
     if (!hash) return
 
-    const year = parseYearFromId(hash)
+    const year = yearOfStrategyId(hash)
     if (!year) return
 
-    const yearStrategies = calculateStrategies(
-      year,
-      (holidaysData as Record<string, HolidayEntry[]>)[String(year)]
-    )
+    const yearStrategies = calculateStrategies(year, ALL_HOLIDAYS[String(year)] ?? [])
     const match = yearStrategies.find(s => s.id === hash)
     if (!match) return
 
@@ -68,7 +71,7 @@ export default function App() {
     })
   }, [])
 
-  function handleSelectStrategy(strategy: Strategy) {
+  function handleSelectStrategy(strategy: ReturnType<typeof calculateStrategies>[number]) {
     setSelectedStrategy(strategy)
     setSheetOpen(true)
     window.history.replaceState(null, '', '#' + strategy.id)
@@ -78,7 +81,7 @@ export default function App() {
     setSheetOpen(false)
   }
 
-  function handleYearChange(year: Year) {
+  function handleYearChange(year: number) {
     setSelectedYear(year)
     setSelectedStrategy(null)
     setSheetOpen(false)
@@ -93,7 +96,6 @@ export default function App() {
   }
 
   // ── Budget filtering ────────────────────────────────────────────────────────
-  // Paid strategies shown first; freebies collapsed at the bottom
   const freebies = strategies.filter(s => s.isFreebie)
   const withinBudget = strategies.filter(s => !s.isFreebie && s.leaveDays <= budget)
   const upsells = strategies.filter(s => !s.isFreebie && s.leaveDays === budget + 1)
@@ -132,30 +134,27 @@ export default function App() {
           <p className="text-sm text-slate-500 mt-1">台灣請假攻略</p>
         </header>
 
-        {/* ── Year Tabs ───────────────────────────────────────────── */}
-        <div role="tablist" className="flex border-b-2 border-slate-100 mb-4">
-          {([2026, 2027] as Year[]).map(year => (
-            <button
-              key={year}
-              role="tab"
-              aria-selected={selectedYear === year}
-              onClick={() => handleYearChange(year)}
-              className={[
-                'flex-1 py-3 text-sm font-semibold flex items-center justify-center gap-2 transition-colors',
-                selectedYear === year
-                  ? 'text-sky-500 border-b-2 border-sky-500 -mb-[2px]'
-                  : 'text-slate-400 hover:text-slate-600',
-              ].join(' ')}
-            >
-              {year}
-              {year === 2027 && (
-                <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full">
-                  預估
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+        {/* ── Year Tabs (only when multiple confirmed years) ───────── */}
+        {confirmedYears.length > 1 && (
+          <div role="tablist" className="flex border-b-2 border-slate-100 mb-4">
+            {confirmedYears.map(year => (
+              <button
+                key={year}
+                role="tab"
+                aria-selected={selectedYear === year}
+                onClick={() => handleYearChange(year)}
+                className={[
+                  'flex-1 py-3 text-sm font-semibold transition-colors',
+                  selectedYear === year
+                    ? 'text-sky-500 border-b-2 border-sky-500 -mb-[2px]'
+                    : 'text-slate-400 hover:text-slate-600',
+                ].join(' ')}
+              >
+                {year}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* ── Budget Stepper ──────────────────────────────────────── */}
         <div className="flex items-center justify-center gap-3 bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3 mb-4">
@@ -244,9 +243,9 @@ export default function App() {
         {/* ── Footer ─────────────────────────────────────────────── */}
         <footer className="py-6 border-t border-slate-100 text-center space-y-1">
           <p className="text-xs text-slate-400">
-            2027 年假表依農曆週期預估，正式請假請依行政院人事行政總處公告為準。
+            正式請假請依行政院人事行政總處公告為準。
           </p>
-          <p className="text-xs text-slate-300">© 2026 vacay.tw</p>
+          <p className="text-xs text-slate-300">© {new Date().getFullYear()} vacay.tw</p>
         </footer>
       </div>
 
