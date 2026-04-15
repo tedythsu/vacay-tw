@@ -33,6 +33,7 @@ export default function App() {
   const [showAll, setShowAll] = useState(false)
   const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
+  const [sortBy, setSortBy] = useState<'cp' | 'date' | 'leave' | 'total'>('cp')
 
   const allStrategies = calculateStrategies(selectedYear, ALL_HOLIDAYS[String(selectedYear)] ?? [])
   // Only keep strategies whose end date is today or in the future
@@ -91,11 +92,25 @@ export default function App() {
     setShowAll(false)
   }
 
-  // ── Budget filtering ────────────────────────────────────────────────────────
+  function handleSortChange(next: typeof sortBy) {
+    setSortBy(next)
+    setShowAll(false)
+  }
+
+  // ── Budget filtering & sorting ──────────────────────────────────────────────
   const freebies = strategies.filter(s => s.isFreebie)
   const withinBudget = strategies.filter(s => !s.isFreebie && s.leaveDays <= budget)
   const upsells = strategies.filter(s => !s.isFreebie && s.leaveDays === budget + 1)
-  const paidStrategies = [...withinBudget, ...upsells]
+
+  const paidStrategies = [...withinBudget, ...upsells].sort((a, b) => {
+    switch (sortBy) {
+      case 'date':  return a.start.localeCompare(b.start)
+      case 'leave': return a.leaveDays - b.leaveDays
+      case 'total': return b.totalDays - a.totalDays
+      case 'cp':
+      default:      return (b.cpValue ?? 0) - (a.cpValue ?? 0)
+    }
+  })
 
   const INITIAL_SHOW = 5
 
@@ -177,6 +192,29 @@ export default function App() {
             </button>
           </div>
           <span className="text-sm text-slate-500">天假，幫我找最佳攻略</span>
+        </div>
+
+        {/* ── Sort Pills ──────────────────────────────────────────── */}
+        <div className="flex gap-2 mb-3 overflow-x-auto pb-0.5 no-scrollbar">
+          {([
+            { key: 'cp',    label: 'CP值' },
+            { key: 'date',  label: '日期' },
+            { key: 'leave', label: '請假天數' },
+            { key: 'total', label: '連休天數' },
+          ] as const).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => handleSortChange(key)}
+              className={[
+                'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors',
+                sortBy === key
+                  ? 'bg-sky-500 text-white'
+                  : 'bg-white border border-slate-200 text-slate-500 hover:border-sky-300 hover:text-sky-500',
+              ].join(' ')}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* ── Paid Strategy List ──────────────────────────────────── */}
