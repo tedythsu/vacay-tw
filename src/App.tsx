@@ -224,7 +224,7 @@ export default function App() {
               +
             </button>
           </div>
-          <span className="text-sm text-slate-500">天假，幫我找最佳攻略</span>
+          <span className="text-sm text-slate-500">天假，幫我找最佳方案</span>
         </div>
 
         {/* ── CP Filter Pills ─────────────────────────────────────── */}
