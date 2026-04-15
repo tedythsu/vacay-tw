@@ -63,7 +63,7 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell }: Props
           return (
             <div className="text-right shrink-0">
               <div className={`text-xl font-extrabold leading-none ${className}`}>{text}</div>
-              <div className="text-xs text-slate-400 mt-0.5">划算程度</div>
+              <div className="text-xs text-slate-400 mt-0.5">CP值</div>
             </div>
           )
         })()}
