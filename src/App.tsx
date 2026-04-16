@@ -186,7 +186,7 @@ export default function App() {
                     >
                       ‹
                     </button>
-                    <span className="text-3xl font-bold text-slate-800 w-16 text-center tabular-nums">
+                    <span className="text-xl font-bold text-slate-800 w-14 text-center tabular-nums">
                       {selectedYear}
                     </span>
                     <button
