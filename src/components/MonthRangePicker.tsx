@@ -42,27 +42,24 @@ export function MonthRangePicker({ value, onChange }: Props) {
           min={1} max={12} step={1}
           value={start}
           onChange={e => handleStart(Number(e.target.value))}
-          className="range-thumb absolute w-full appearance-none bg-transparent pointer-events-none
+          className="absolute w-full appearance-none bg-transparent pointer-events-none
             [&::-webkit-slider-thumb]:pointer-events-auto
             [&::-webkit-slider-thumb]:appearance-none
-            [&::-webkit-slider-thumb]:w-4
-            [&::-webkit-slider-thumb]:h-4
+            [&::-webkit-slider-thumb]:w-5
+            [&::-webkit-slider-thumb]:h-5
             [&::-webkit-slider-thumb]:rounded-full
-            [&::-webkit-slider-thumb]:bg-white
-            [&::-webkit-slider-thumb]:border-2
-            [&::-webkit-slider-thumb]:border-brand-500
-            [&::-webkit-slider-thumb]:shadow-sm
+            [&::-webkit-slider-thumb]:bg-brand-500
+            [&::-webkit-slider-thumb]:shadow-md
             [&::-webkit-slider-thumb]:cursor-grab
             [&::-webkit-slider-thumb]:active:cursor-grabbing
+            [&::-webkit-slider-thumb]:active:bg-brand-600
             [&::-moz-range-thumb]:pointer-events-auto
-            [&::-moz-range-thumb]:appearance-none
-            [&::-moz-range-thumb]:w-4
-            [&::-moz-range-thumb]:h-4
+            [&::-moz-range-thumb]:border-0
+            [&::-moz-range-thumb]:w-5
+            [&::-moz-range-thumb]:h-5
             [&::-moz-range-thumb]:rounded-full
-            [&::-moz-range-thumb]:bg-white
-            [&::-moz-range-thumb]:border-2
-            [&::-moz-range-thumb]:border-brand-500
-            [&::-moz-range-thumb]:shadow-sm
+            [&::-moz-range-thumb]:bg-brand-500
+            [&::-moz-range-thumb]:shadow-md
             [&::-moz-range-thumb]:cursor-grab"
           aria-label="篩選起始月份"
         />
@@ -73,27 +70,24 @@ export function MonthRangePicker({ value, onChange }: Props) {
           min={1} max={12} step={1}
           value={end}
           onChange={e => handleEnd(Number(e.target.value))}
-          className="range-thumb absolute w-full appearance-none bg-transparent pointer-events-none
+          className="absolute w-full appearance-none bg-transparent pointer-events-none
             [&::-webkit-slider-thumb]:pointer-events-auto
             [&::-webkit-slider-thumb]:appearance-none
-            [&::-webkit-slider-thumb]:w-4
-            [&::-webkit-slider-thumb]:h-4
+            [&::-webkit-slider-thumb]:w-5
+            [&::-webkit-slider-thumb]:h-5
             [&::-webkit-slider-thumb]:rounded-full
-            [&::-webkit-slider-thumb]:bg-white
-            [&::-webkit-slider-thumb]:border-2
-            [&::-webkit-slider-thumb]:border-brand-500
-            [&::-webkit-slider-thumb]:shadow-sm
+            [&::-webkit-slider-thumb]:bg-brand-500
+            [&::-webkit-slider-thumb]:shadow-md
             [&::-webkit-slider-thumb]:cursor-grab
             [&::-webkit-slider-thumb]:active:cursor-grabbing
+            [&::-webkit-slider-thumb]:active:bg-brand-600
             [&::-moz-range-thumb]:pointer-events-auto
-            [&::-moz-range-thumb]:appearance-none
-            [&::-moz-range-thumb]:w-4
-            [&::-moz-range-thumb]:h-4
+            [&::-moz-range-thumb]:border-0
+            [&::-moz-range-thumb]:w-5
+            [&::-moz-range-thumb]:h-5
             [&::-moz-range-thumb]:rounded-full
-            [&::-moz-range-thumb]:bg-white
-            [&::-moz-range-thumb]:border-2
-            [&::-moz-range-thumb]:border-brand-500
-            [&::-moz-range-thumb]:shadow-sm
+            [&::-moz-range-thumb]:bg-brand-500
+            [&::-moz-range-thumb]:shadow-md
             [&::-moz-range-thumb]:cursor-grab"
           aria-label="篩選結束月份"
         />
