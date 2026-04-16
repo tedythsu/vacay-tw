@@ -298,7 +298,7 @@ export default function App() {
         {freebies.length > 0 && (
           <div className="mt-2">
             {/* Freebies */}
-            <div className="rounded-2xl border border-slate-100 bg-white px-3 pt-1 pb-1">
+            <div className="rounded-2xl border border-green-300 bg-green-50 px-3 pt-1 pb-1">
               <button
                 onClick={() => setShowFreebies(prev => !prev)}
                 aria-expanded={showFreebies}

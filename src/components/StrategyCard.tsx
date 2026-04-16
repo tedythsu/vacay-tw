@@ -19,7 +19,7 @@ export function StrategyCard({ strategy, isSelected, onSelect, showTotalDays }: 
         isSelected
           ? 'border-2 border-brand-500 shadow-md shadow-brand-100'
           : 'border border-slate-200 shadow-sm',
-        strategy.isFreebie ? 'bg-green-50' : 'bg-white',
+        'bg-white',
       ].join(' ')}
     >
       {/* Badges */}
