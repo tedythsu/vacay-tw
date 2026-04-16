@@ -39,20 +39,16 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, showTot
         {strategy.name}
       </div>
 
-      {/* Date range + leave cost (or totalDays for standalone cards) */}
+      {/* Date range + totalDays for standalone cards */}
       <div className="flex items-baseline justify-between gap-3 mt-1">
         <div className="text-xs text-slate-500 tabular-nums">
           {strategy.start.replace(/-/g, '/')} ～ {strategy.end.replace(/-/g, '/')}
         </div>
-        {showTotalDays ? (
+        {showTotalDays && (
           <div className="text-sm font-bold text-slate-700 tabular-nums shrink-0">
             連休 {strategy.totalDays} 天
           </div>
-        ) : !strategy.isFreebie ? (
-          <div className="text-xs text-slate-500 shrink-0">
-            請 {strategy.leaveDays} 天
-          </div>
-        ) : null}
+        )}
       </div>
     </button>
   )
