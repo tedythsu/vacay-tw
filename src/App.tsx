@@ -233,12 +233,11 @@ export default function App() {
 
         {/* ── Year Tabs (only when multiple confirmed years) ───────── */}
         {confirmedYears.length > 1 && (
-          <div role="tablist" aria-label="年份選擇" className="flex border-b-2 border-slate-100 mb-4">
+          <div role="group" aria-label="年份選擇" className="flex border-b-2 border-slate-100 mb-4">
             {confirmedYears.map(year => (
               <button
                 key={year}
-                role="tab"
-                aria-selected={selectedYear === year}
+                aria-pressed={selectedYear === year}
                 onClick={() => handleYearChange(year)}
                 className={[
                   'flex-1 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset',
@@ -256,7 +255,7 @@ export default function App() {
         {/* ── Budget Stepper ──────────────────────────────────────── */}
         <div className="flex items-center justify-center gap-3 bg-white rounded-2xl border border-slate-100 shadow-md px-4 py-4 mb-6">
           <span className="text-sm text-slate-600">我有</span>
-          <div className="flex items-center gap-2">
+          <div role="group" aria-label="請假天數" className="flex items-center gap-2">
             <button
               onClick={() => handleBudgetChange(-1)}
               disabled={budget <= MIN_BUDGET}
@@ -265,7 +264,10 @@ export default function App() {
             >
               −
             </button>
-            <span className="text-3xl font-bold text-brand-600 w-9 text-center tabular-nums">
+            <span
+              aria-label={`目前 ${budget} 天，最少 ${MIN_BUDGET} 天，最多 ${MAX_BUDGET} 天`}
+              className="text-3xl font-bold text-brand-600 w-9 text-center tabular-nums"
+            >
               {budget}
             </span>
             <button
@@ -328,7 +330,7 @@ export default function App() {
               >
                 {label}
                 {sortBy === key && (
-                  <span className="text-[10px] leading-none">{sortDir === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-[10px] leading-none" aria-hidden="true">{sortDir === 'asc' ? '↑' : '↓'}</span>
                 )}
               </button>
             ))}
@@ -387,6 +389,7 @@ export default function App() {
               <div>
                 <button
                   onClick={() => setShowUnderBudget(prev => !prev)}
+                  aria-expanded={showUnderBudget}
                   className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 >
                   <span className="font-medium">請假少於 {budget} 天的方案（{underBudgetStrategies.length} 個）</span>
@@ -417,6 +420,7 @@ export default function App() {
               <div>
                 <button
                   onClick={() => setShowUpsells(prev => !prev)}
+                  aria-expanded={showUpsells}
                   className="w-full flex items-center justify-between px-4 py-3 bg-white border border-dashed border-orange-200 rounded-2xl text-sm text-slate-600 hover:bg-orange-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 >
                   <span className="font-medium">建議加碼（{upsellStrategies.length} 個）</span>
@@ -447,6 +451,7 @@ export default function App() {
               <div>
                 <button
                   onClick={() => setShowFreebies(prev => !prev)}
+                  aria-expanded={showFreebies}
                   className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 >
                   <span className="font-medium">免請假連假（{freebies.length} 個）</span>
@@ -479,7 +484,7 @@ export default function App() {
           <p className="text-xs text-slate-400">
             正式請假請依行政院人事行政總處公告為準。
           </p>
-          <p className="text-xs text-slate-300">© {confirmedYears[confirmedYears.length - 1]} vacay.tw</p>
+          <p className="text-xs text-slate-400">© {confirmedYears[confirmedYears.length - 1]} vacay.tw</p>
         </footer>
       </main>
 

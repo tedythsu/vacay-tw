@@ -101,7 +101,7 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
           { color: 'bg-slate-100', label: '週末' },
         ].map(({ color, label }) => (
           <span key={label} className="flex items-center gap-1.5 text-xs text-slate-500">
-            <span className={`w-3 h-3 ${color} rounded inline-block`} />
+            <span className={`w-3 h-3 ${color} rounded inline-block`} aria-hidden="true" />
             {label}
           </span>
         ))}
