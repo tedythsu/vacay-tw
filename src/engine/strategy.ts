@@ -153,6 +153,7 @@ function buildStrategy(
   makeupDates: Set<string>,
   year: number,
   isSuperCombo: boolean,
+  baseDays: number,
   idOverride?: string
 ): Strategy | null {
   const { start: expStart, end: expEnd } = expandRange(rangeStart, rangeEnd, allHolidayDates, makeupDates)
@@ -169,9 +170,10 @@ function buildStrategy(
   if (totalDays <= 0) return null
 
   const isFreebie = leaveDays === 0
-  const cpValue = isFreebie ? null : totalDays / leaveDays
+  // Incremental efficiency: each leave day buys how many *extra* days beyond the base holiday block
+  const cpValue = isFreebie ? null : (totalDays - baseDays) / leaveDays
 
-  if (!isFreebie && cpValue! < 2.0) return null
+  if (!isFreebie && cpValue! < 1.0) return null
 
   // Collect colored date arrays
   const holidayDates: string[] = []
@@ -230,14 +232,24 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
 
   const strategies: Strategy[] = []
 
+  // ── Pre-compute baseDays per holiday (natural freebie block size) ───────────
+  const holidayBaseDays = new Map<string, number>()
+  for (const holiday of regularHolidays) {
+    const hStart = parseISO(holiday.start)
+    const hEnd = parseISO(holiday.end)
+    const { start: baseStart, end: baseEnd } = expandRange(hStart, hEnd, allHolidayDates, makeupDates)
+    holidayBaseDays.set(holiday.start, eachDayOfInterval({ start: baseStart, end: baseEnd }).length)
+  }
+
   // ── Per-holiday strategies ──────────────────────────────────────────────────
   for (const holiday of regularHolidays) {
     const hStart = parseISO(holiday.start)
     const hEnd = parseISO(holiday.end)
     const { start: baseStart, end: baseEnd } = expandRange(hStart, hEnd, allHolidayDates, makeupDates)
+    const baseDays = holidayBaseDays.get(holiday.start)!
 
     // Freebie: just the holiday + adjacent weekends, no leave taken
-    const freebie = buildStrategy(holiday, baseStart, baseEnd, allHolidayDates, makeupDates, year, false)
+    const freebie = buildStrategy(holiday, baseStart, baseEnd, allHolidayDates, makeupDates, year, false, baseDays)
     if (freebie) strategies.push(freebie)
 
     // Enumerate leave extensions: front 0-3 days, back 0-3 days, total ≤ 5
@@ -264,7 +276,7 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
           if ((!isWeekend(leaveEnd) && !allHolidayDates.has(ds)) || makeupDates.has(ds)) remaining--
         }
 
-        const strategy = buildStrategy(holiday, leaveStart, leaveEnd, allHolidayDates, makeupDates, year, false)
+        const strategy = buildStrategy(holiday, leaveStart, leaveEnd, allHolidayDates, makeupDates, year, false, baseDays)
         if (strategy) strategies.push(strategy)
       }
     }
@@ -302,6 +314,7 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
         const h2Slug = slugify(h2.name)
         const comboId = `${h1Slug}-${h2Slug}-${year}-super-combo`
 
+        const comboBaseDays = (holidayBaseDays.get(h1.start) ?? 0) + (holidayBaseDays.get(h2.start) ?? 0)
         const superStrategy = buildStrategy(
           comboEntry,
           comboStart,
@@ -310,6 +323,7 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
           makeupDates,
           year,
           true,
+          comboBaseDays,
           comboId
         )
         if (superStrategy) strategies.push(superStrategy)
@@ -327,10 +341,12 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
     } else {
       const sCP = s.cpValue ?? -1
       const exCP = existing.cpValue ?? -1
-      // Prefer higher CP; on ties, prefer isSuperCombo so the 大禮包 badge survives dedup
-      if (sCP > exCP || (sCP === exCP && s.isSuperCombo && !existing.isSuperCombo)) {
-        seen.set(key, s)
-      }
+      // Always prefer isSuperCombo so the 大禮包 badge survives dedup;
+      // when both have the same combo status, prefer the higher cpValue.
+      const preferNew =
+        (s.isSuperCombo && !existing.isSuperCombo) ||
+        (s.isSuperCombo === existing.isSuperCombo && sCP > exCP)
+      if (preferNew) seen.set(key, s)
     }
   }
 

@@ -136,11 +136,11 @@ describe('calculateStrategies', () => {
     }
   })
 
-  it('non-freebie strategies have cpValue >= 2.0', () => {
+  it('non-freebie strategies have cpValue >= 1.0', () => {
     const result = calculateStrategies(2026, testHolidays2026)
     for (const s of result.filter(s => !s.isFreebie)) {
       expect(s.cpValue).not.toBeNull()
-      expect(s.cpValue!).toBeGreaterThanOrEqual(2.0)
+      expect(s.cpValue!).toBeGreaterThanOrEqual(1.0)
     }
   })
 

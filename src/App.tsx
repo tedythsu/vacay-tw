@@ -121,7 +121,7 @@ export default function App() {
   }
 
   const CP_FILTER_MIN: Record<typeof cpFilter, number> = {
-    all: 0, mid: 2.5, high: 3.0, vhigh: 4.0,
+    all: 0, mid: 1.0, high: 1.5, vhigh: 2.0,
   }
 
   // ── Budget filtering & sorting ──────────────────────────────────────────────
@@ -130,7 +130,7 @@ export default function App() {
     !s.isFreebie && s.leaveDays <= budget && (s.cpValue ?? 0) >= CP_FILTER_MIN[cpFilter]
   )
   const upsells = strategies.filter(s =>
-    !s.isFreebie && s.leaveDays === budget + 1 && (s.cpValue ?? 0) >= Math.max(2.5, CP_FILTER_MIN[cpFilter])
+    !s.isFreebie && s.leaveDays === budget + 1 && (s.cpValue ?? 0) >= Math.max(1.5, CP_FILTER_MIN[cpFilter])
   )
 
   const bestCp = withinBudget.length > 0

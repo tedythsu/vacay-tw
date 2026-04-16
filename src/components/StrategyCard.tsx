@@ -9,9 +9,9 @@ interface Props {
 }
 
 function cpLabel(cp: number): { text: string; className: string } {
-  if (cp >= 4.0) return { text: '極高', className: 'text-emerald-600' }
-  if (cp >= 3.0) return { text: '高',   className: 'text-sky-500' }
-  if (cp >= 2.5) return { text: '中',   className: 'text-slate-600' }
+  if (cp >= 2.0) return { text: '極高', className: 'text-emerald-600' }
+  if (cp >= 1.5) return { text: '高',   className: 'text-sky-500' }
+  if (cp >= 1.0) return { text: '中',   className: 'text-slate-600' }
   return              { text: '低',   className: 'text-slate-400' }
 }
 
