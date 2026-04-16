@@ -23,6 +23,7 @@ export interface Strategy {
   id: string
   name: string
   year: number
+  baseDays: number             // natural holiday block size (no leave taken)
   leaveDays: number
   totalDays: number
   cpValue: number | null       // null when isFreebie === true
@@ -203,6 +204,7 @@ function buildStrategy(
     id,
     name: isSuperCombo ? `${holiday.name} 大禮包` : holiday.name,
     year,
+    baseDays,
     leaveDays,
     totalDays,
     cpValue,
