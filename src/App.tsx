@@ -186,14 +186,6 @@ export default function App() {
               ))}
             </div>
           )}
-          {/* Holiday overview trigger — anchored to the year context */}
-          <button
-            onClick={() => setYearCalOpen(true)}
-            className="w-full flex items-center justify-between py-2.5 text-xs text-slate-600 hover:text-brand-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded"
-          >
-            <span className="font-medium">{selectedYear} 國定假日總覽</span>
-            <span aria-hidden="true" className="text-slate-400">›</span>
-          </button>
         </div>
 
         {/* ── Budget Stepper ──────────────────────────────────────── */}
@@ -332,6 +324,14 @@ export default function App() {
                   ))}
                 </div>
               )}
+              {/* Calendar overview — always visible, contextually anchored to freebies */}
+              <button
+                onClick={() => setYearCalOpen(true)}
+                className="w-full flex items-center justify-between py-2.5 border-t border-green-200 text-xs text-green-700 hover:text-green-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded-b-2xl"
+              >
+                <span className="font-medium">{selectedYear} 國定假日總覽</span>
+                <span aria-hidden="true" className="text-green-400">›</span>
+              </button>
             </div>
           </div>
         )}
