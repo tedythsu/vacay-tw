@@ -133,15 +133,25 @@ export default function App() {
     !s.isFreebie && s.leaveDays === budget + 1 && (s.cpValue ?? 0) >= Math.max(1.5, CP_FILTER_MIN[cpFilter])
   )
 
-  // Adjusted score normalises by *budget* (not leaveDays) so a strategy that
-  // uses fewer days than the budget doesn't unfairly beat one that uses it fully.
+  // Adjusted score normalises by *budget* so strategies that use fewer leave
+  // days than the budget don't unfairly beat ones that fully use it.
   // adjustedScore = cpValue × leaveDays / budget = (totalDays - baseDays) / budget
   const adjustedScore = (s: typeof withinBudget[number]) =>
     (s.cpValue ?? 0) * s.leaveDays / budget
 
-  const bestAdjustedScore = withinBudget.length > 0
-    ? Math.max(...withinBudget.map(adjustedScore))
-    : -Infinity
+  // Three-level comparator: adjustedScore → cpValue → totalDays (all descending)
+  const cpCompareFn = (a: typeof withinBudget[number], b: typeof withinBudget[number]): number => {
+    const adjDiff = adjustedScore(a) - adjustedScore(b)
+    if (Math.abs(adjDiff) > 0.0001) return adjDiff
+    const cpDiff = (a.cpValue ?? 0) - (b.cpValue ?? 0)
+    if (Math.abs(cpDiff) > 0.0001) return cpDiff
+    return a.totalDays - b.totalDays
+  }
+
+  // Best strategy: highest by three-level comparator
+  const bestStrategy = withinBudget.length > 0
+    ? withinBudget.reduce((best, s) => cpCompareFn(s, best) > 0 ? s : best)
+    : null
 
   const sortFn = (a: typeof withinBudget[number], b: typeof withinBudget[number]) => {
     const dir = sortDir === 'asc' ? 1 : -1
@@ -150,12 +160,7 @@ export default function App() {
       case 'leave': return dir * (a.leaveDays - b.leaveDays)
       case 'total': return dir * (a.totalDays - b.totalDays)
       case 'cp':
-      default: {
-        // Primary: adjustedScore (budget-normalised), Secondary: raw cpValue
-        const diff = adjustedScore(a) - adjustedScore(b)
-        if (Math.abs(diff) > 0.0001) return dir * diff
-        return dir * ((a.cpValue ?? 0) - (b.cpValue ?? 0))
-      }
+      default:      return dir * cpCompareFn(a, b)
     }
   }
 
@@ -310,7 +315,7 @@ export default function App() {
                   strategy={item.strategy}
                   isSelected={selectedStrategy?.id === item.strategy.id}
                   isUpsell={false}
-                  isBest={Math.abs(adjustedScore(item.strategy) - bestAdjustedScore) < 0.001}
+                  isBest={bestStrategy !== null && cpCompareFn(item.strategy, bestStrategy) === 0}
                   onSelect={() => handleSelectStrategy(item.strategy)}
                 />
               </div>
