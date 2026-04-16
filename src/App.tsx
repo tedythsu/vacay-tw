@@ -179,7 +179,7 @@ export default function App() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             vacay.tw
           </h1>
-          <p className="text-sm text-slate-500 mt-1">台灣週休二日上班族請假攻略</p>
+          <p className="text-sm text-slate-500 mt-1">找出最划算的連休方案</p>
         </header>
 
         {/* ── Query Block (year + budget, merged) ─────────────────── */}
