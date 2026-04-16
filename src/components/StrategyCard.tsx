@@ -25,7 +25,7 @@ export function StrategyCard({ strategy, isSelected, onSelect, showTotalDays }: 
       {/* Badges */}
       {strategy.isSuperCombo && (
         <div className="flex gap-1.5 flex-wrap mb-2">
-          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+          <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">
             大禮包
           </span>
         </div>

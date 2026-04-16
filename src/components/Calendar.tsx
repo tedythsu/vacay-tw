@@ -42,7 +42,7 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
     const base = 'text-center text-xs py-1.5 rounded-lg transition-colors tabular-nums'
     if (!inMonth) return `${base} text-slate-200`
     if (holidaySet.has(dateStr)) return `${base} bg-red-100 text-red-600 font-bold`
-    if (leaveSet.has(dateStr)) return `${base} bg-yellow-100 text-yellow-700 font-bold`
+    if (leaveSet.has(dateStr)) return `${base} bg-amber-100 text-amber-700 font-bold`
     if (weekendSet.has(dateStr)) return `${base} bg-slate-100 text-slate-500`
     if (isWeekend(new Date(dateStr + 'T00:00:00'))) return `${base} text-slate-300`
     return `${base} text-slate-700`
@@ -97,7 +97,7 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
       <div className="flex gap-3 mt-3 flex-wrap">
         {[
           { color: 'bg-red-100', label: '國定假日' },
-          { color: 'bg-yellow-100', label: '建議請假' },
+          { color: 'bg-amber-100', label: '建議請假' },
           { color: 'bg-slate-100', label: '週末' },
         ].map(({ color, label }) => (
           <span key={label} className="flex items-center gap-1.5 text-xs text-slate-500">
