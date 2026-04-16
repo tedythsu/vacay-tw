@@ -4,11 +4,10 @@ interface Props {
   strategy: Strategy
   isSelected: boolean
   onSelect: () => void
-  isUpsell?: boolean
-  showTotalDays?: boolean   // for upsell/under-budget/freebie cards rendered outside grouped list
+  showTotalDays?: boolean   // for freebie cards rendered outside grouped list
 }
 
-export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, showTotalDays }: Props) {
+export function StrategyCard({ strategy, isSelected, onSelect, showTotalDays }: Props) {
   return (
     <button
       type="button"
@@ -19,9 +18,7 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, showTot
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
         isSelected
           ? 'border-2 border-brand-500 shadow-md shadow-brand-100'
-          : isUpsell
-            ? 'border border-dashed border-orange-200 shadow-sm'
-            : 'border border-slate-200 shadow-sm',
+          : 'border border-slate-200 shadow-sm',
         strategy.isFreebie ? 'bg-green-50' : 'bg-white',
       ].join(' ')}
     >

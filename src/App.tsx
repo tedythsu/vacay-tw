@@ -35,8 +35,6 @@ export default function App() {
   const [selectedStrategy, setSelectedStrategy] = useState<ReturnType<typeof calculateStrategies>[number] | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [showFreebies, setShowFreebies] = useState(false)
-  const [showUpsells, setShowUpsells] = useState(false)
-  const [showUnderBudget, setShowUnderBudget] = useState(false)
   const [budget, setBudget] = useState(3)
   const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set())
   const [shareCopied, setShareCopied] = useState(false)
@@ -111,8 +109,6 @@ export default function App() {
     setSheetOpen(false)
     setYearCalOpen(false)
     setShowFreebies(false)
-    setShowUpsells(false)
-    setShowUnderBudget(false)
     setCollapsedGroups(new Set())
     window.history.replaceState(null, '', location.pathname)
   }
@@ -120,8 +116,6 @@ export default function App() {
   function handleBudgetChange(delta: number) {
     setBudget(prev => Math.max(MIN_BUDGET, Math.min(MAX_BUDGET, prev + delta)))
     setShowFreebies(false)
-    setShowUpsells(false)
-    setShowUnderBudget(false)
     setCollapsedGroups(new Set())
   }
 
@@ -137,8 +131,6 @@ export default function App() {
   // ── Budget filtering ────────────────────────────────────────────────────────
   const freebies = strategies.filter(s => s.isFreebie)
   const exactBudget = strategies.filter(s => !s.isFreebie && s.leaveDays === budget)
-  const underBudget = strategies.filter(s => !s.isFreebie && s.leaveDays > 0 && s.leaveDays < budget)
-  const upsells = strategies.filter(s => !s.isFreebie && s.leaveDays === budget + 1)
 
   type S = typeof exactBudget[number]
 
@@ -147,8 +139,6 @@ export default function App() {
     b.totalDays - a.totalDays || a.start.localeCompare(b.start)
 
   const paidStrategies = [...exactBudget].sort(compareFn)
-  const underBudgetStrategies = [...underBudget].sort(compareFn)
-  const upsellStrategies = [...upsells].sort(compareFn)
 
   // Group paid strategies by totalDays (desc)
   const groupedPaid: [number, S[]][] = []
@@ -291,7 +281,7 @@ export default function App() {
                           <StrategyCard
                             strategy={s}
                             isSelected={selectedStrategy?.id === s.id}
-                            isUpsell={false}
+  
                             onSelect={() => handleSelectStrategy(s)}
                           />
                         </div>
@@ -304,103 +294,45 @@ export default function App() {
           </div>
         )}
 
-        {/* ── Secondary sections (collapsed by default) ───────────── */}
-        {(underBudgetStrategies.length > 0 || upsellStrategies.length > 0 || freebies.length > 0) && (
-          <div className="mt-6 space-y-2">
-
-            {/* Under-budget */}
-            {underBudgetStrategies.length > 0 && (
-              <div>
-                <button
-                  onClick={() => setShowUnderBudget(prev => !prev)}
-                  aria-expanded={showUnderBudget}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                >
-                  <span className="font-medium">請假少於 {budget} 天的方案（{underBudgetStrategies.length} 個）</span>
-                  <span aria-hidden="true" className={['text-slate-400 transition-transform duration-200', showUnderBudget ? 'rotate-180' : ''].join(' ')}>
-                    ▾
-                  </span>
-                </button>
-                {showUnderBudget && (
-                  <div className="space-y-3 mt-2">
-                    {underBudgetStrategies.map(s => (
-                      <div key={s.id} id={s.id}>
-                        <StrategyCard
-                          strategy={s}
-                          isSelected={selectedStrategy?.id === s.id}
-                          isUpsell={false}
-                          showTotalDays
-                          onSelect={() => handleSelectStrategy(s)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Upsells */}
-            {upsellStrategies.length > 0 && (
-              <div>
-                <button
-                  onClick={() => setShowUpsells(prev => !prev)}
-                  aria-expanded={showUpsells}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-white border border-dashed border-orange-200 rounded-2xl text-sm text-slate-600 hover:bg-orange-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                >
-                  <span className="font-medium">建議加碼（{upsellStrategies.length} 個）</span>
-                  <span aria-hidden="true" className={['text-slate-400 transition-transform duration-200', showUpsells ? 'rotate-180' : ''].join(' ')}>
-                    ▾
-                  </span>
-                </button>
-                {showUpsells && (
-                  <div className="space-y-3 mt-2">
-                    {upsellStrategies.map(s => (
-                      <div key={s.id} id={s.id}>
-                        <StrategyCard
-                          strategy={s}
-                          isSelected={selectedStrategy?.id === s.id}
-                          isUpsell={true}
-                          showTotalDays
-                          onSelect={() => handleSelectStrategy(s)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
+        {/* ── Freebies section ────────────────────────────────────── */}
+        {freebies.length > 0 && (
+          <div className="mt-2">
             {/* Freebies */}
-            {freebies.length > 0 && (
-              <div>
-                <button
-                  onClick={() => setShowFreebies(prev => !prev)}
-                  aria-expanded={showFreebies}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                >
-                  <span className="font-medium">免請假連假（{freebies.length} 個）</span>
-                  <span aria-hidden="true" className={['text-slate-400 transition-transform duration-200', showFreebies ? 'rotate-180' : ''].join(' ')}>
-                    ▾
+            <div className="rounded-2xl border border-slate-100 bg-white px-3 pt-1 pb-1">
+              <button
+                onClick={() => setShowFreebies(prev => !prev)}
+                aria-expanded={showFreebies}
+                className="w-full flex items-center justify-between py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded-lg"
+              >
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xs text-slate-500">國定連假</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400">{freebies.length} 個方案</span>
+                  <span
+                    aria-hidden="true"
+                    className={['text-slate-400 text-sm leading-none transition-transform duration-200', showFreebies ? 'rotate-90' : ''].join(' ')}
+                  >
+                    ›
                   </span>
-                </button>
-                {showFreebies && (
-                  <div className="space-y-3 mt-2">
-                    {freebies.map(s => (
-                      <div key={s.id} id={s.id}>
-                        <StrategyCard
-                          strategy={s}
-                          isSelected={selectedStrategy?.id === s.id}
-                          isUpsell={false}
-                          showTotalDays
-                          onSelect={() => handleSelectStrategy(s)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
+                </div>
+              </button>
+              {showFreebies && (
+                <div className="space-y-3 pb-3">
+                  {freebies.map(s => (
+                    <div key={s.id} id={s.id}>
+                      <StrategyCard
+                        strategy={s}
+                        isSelected={selectedStrategy?.id === s.id}
+                        isUpsell={false}
+                        showTotalDays
+                        onSelect={() => handleSelectStrategy(s)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
