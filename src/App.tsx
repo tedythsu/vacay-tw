@@ -21,6 +21,8 @@ const MIN_BUDGET = 1
 const MAX_BUDGET = 30
 
 const today = format(new Date(), 'yyyy-MM-dd')
+const currentYear = new Date().getFullYear()
+const currentMonth = new Date().getMonth() + 1
 
 // Pre-compute all years at module init — data is static, no reason to recompute on interaction.
 // Year-tab switching becomes an O(1) Map lookup instead of a 300ms blocking calculation.
@@ -50,8 +52,10 @@ export default function App() {
   const [sheetOpen, setSheetOpen] = useState(INITIAL_HASH_STATE != null)
   const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
-  const [monthFilterEnabled, setMonthFilterEnabled] = useState(false)
-  const [monthRange, setMonthRange] = useState<[number, number]>([1, 12])
+  const initialYear = INITIAL_HASH_STATE?.year ?? confirmedYears[0]
+  const [monthRange, setMonthRange] = useState<[number, number]>(
+    initialYear === currentYear ? [currentMonth, 12] : [1, 12]
+  )
   const [toggledGroups, setToggledGroups] = useState<Set<number>>(new Set())
   const [shareCopied, setShareCopied] = useState(false)
   const [yearCalOpen, setYearCalOpen] = useState(false)
@@ -113,8 +117,7 @@ export default function App() {
     setSheetOpen(false)
     setYearCalOpen(false)
     setShowFreebies(false)
-    setMonthFilterEnabled(false)
-    setMonthRange([1, 12])
+    setMonthRange(year === currentYear ? [currentMonth, 12] : [1, 12])
     setToggledGroups(new Set())
     window.history.replaceState(null, '', location.pathname)
   }
@@ -136,7 +139,6 @@ export default function App() {
 
   // ── Month filter ────────────────────────────────────────────────────────────
   function matchesMonthFilter(s: ReturnType<typeof calculateStrategies>[number]): boolean {
-    if (!monthFilterEnabled) return true
     const sMonth = parseInt(s.start.slice(5, 7))
     const eMonth = parseInt(s.end.slice(5, 7))
     // Show if the strategy's date range overlaps with the selected month range
@@ -177,7 +179,7 @@ export default function App() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             vacay.tw
           </h1>
-          <p className="text-sm text-slate-500 mt-1">台灣請假攻略</p>
+          <p className="text-sm text-slate-500 mt-1">台灣週休二日上班族請假攻略</p>
         </header>
 
         {/* ── Query Block (year + budget, merged) ─────────────────── */}
@@ -217,34 +219,13 @@ export default function App() {
                 </div>
               )}
 
-              {/* Month filter toggle + slider */}
+              {/* Month filter — always visible */}
               <div className="border-t border-slate-100 pt-3">
-                <button
-                  onClick={() => {
-                    setMonthFilterEnabled(prev => !prev)
-                    if (monthFilterEnabled) setMonthRange([1, 12])
-                  }}
-                  className={[
-                    'w-full flex items-center justify-center gap-1.5 text-xs py-1 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
-                    monthFilterEnabled
-                      ? 'text-slate-700 font-medium'
-                      : 'text-slate-500 hover:text-slate-700',
-                  ].join(' ')}
-                  aria-expanded={monthFilterEnabled}
-                >
-                  <span>{monthFilterEnabled ? '月份篩選：' : '＋ 月份篩選'}</span>
-                  {monthFilterEnabled && (
-                    <span className="font-semibold tabular-nums text-brand-600">
-                      {monthRange[0]}月 – {monthRange[1]}月
-                    </span>
-                  )}
-                  {monthFilterEnabled && <span className="text-slate-400 ml-1">✕</span>}
-                </button>
-                {monthFilterEnabled && (
-                  <div className="mt-2 px-1">
-                    <MonthRangePicker value={monthRange} onChange={setMonthRange} />
-                  </div>
-                )}
+                <MonthRangePicker
+                  value={monthRange}
+                  onChange={setMonthRange}
+                  minStart={selectedYear === currentYear ? currentMonth : 1}
+                />
               </div>
 
               {/* Budget row */}

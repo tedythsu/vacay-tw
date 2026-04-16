@@ -1,15 +1,16 @@
 interface Props {
   value: [number, number]   // [startMonth, endMonth], 1-indexed
   onChange: (v: [number, number]) => void
+  minStart?: number         // minimum allowed start month (default 1)
 }
 
 const MONTH_LABELS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
 
-export function MonthRangePicker({ value, onChange }: Props) {
+export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
   const [start, end] = value
 
   function handleStart(raw: number) {
-    onChange([Math.min(raw, end), end])
+    onChange([Math.min(Math.max(raw, minStart), end), end])
   }
   function handleEnd(raw: number) {
     onChange([start, Math.max(raw, start)])
@@ -105,6 +106,9 @@ export function MonthRangePicker({ value, onChange }: Props) {
           />
         ))}
       </div>
+
+      {/* "之間" label */}
+      <p className="text-xs text-slate-400 text-center mt-2">之間</p>
     </div>
   )
 }
