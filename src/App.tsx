@@ -473,7 +473,7 @@ export default function App() {
                   }}
                   className="w-full mt-4 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white rounded-xl py-3.5 font-semibold text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 >
-                  <span aria-live="polite">{shareCopied ? '已複製連結 ✓' : '分享這個攻略'}</span>
+                  <span aria-live="polite">{shareCopied ? '已複製連結 ✓' : '分享這個方案'}</span>
                 </button>
               </div>
             </>
