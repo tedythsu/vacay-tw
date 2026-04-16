@@ -14,7 +14,7 @@ function cpLabel(cp: number, totalDays: number): { text: string; className: stri
   // 高: good efficiency, or long vacation regardless of efficiency
   if (cp >= 1.5 || totalDays >= 10)  return { text: '高',   className: 'text-brand-600' }
   if (cp >= 1.0)                     return { text: '中',   className: 'text-slate-600' }
-  return                                    { text: '低',   className: 'text-slate-400' }
+  return                                    { text: '低',   className: 'text-slate-500' }
 }
 
 export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest }: Props) {
@@ -76,18 +76,18 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest 
 
       {/* Stats row — only for non-freebie */}
       {!strategy.isFreebie && (
-        <div className="flex items-center gap-1 mt-3">
-          <div className={`flex-1 rounded-xl p-2 text-center ${isBest ? 'bg-amber-100' : 'bg-slate-50'}`}>
+        <div className="flex items-center gap-1 mt-3 pt-3 border-t border-slate-100">
+          <div className="flex-1 text-center">
             <div className="text-sm font-bold text-slate-900 tabular-nums">{strategy.baseDays}</div>
             <div className="text-xs text-slate-500 tracking-wide">天連假</div>
           </div>
           <div className="text-slate-300 font-bold text-sm">+</div>
-          <div className={`flex-1 rounded-xl p-2 text-center ${isBest ? 'bg-amber-100' : 'bg-slate-50'}`}>
+          <div className="flex-1 text-center">
             <div className="text-sm font-bold text-slate-900 tabular-nums">{strategy.leaveDays}</div>
             <div className="text-xs text-slate-500 tracking-wide">天請假</div>
           </div>
           <div className="text-slate-300 font-bold text-sm">=</div>
-          <div className={`flex-1 rounded-xl p-2 text-center ${isBest ? 'bg-amber-100' : 'bg-slate-50'}`}>
+          <div className="flex-1 text-center">
             <div className="text-sm font-bold text-slate-900 tabular-nums">{strategy.totalDays}</div>
             <div className="text-xs text-slate-500 tracking-wide">天連休</div>
           </div>

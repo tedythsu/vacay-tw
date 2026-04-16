@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   addMonths,
   subMonths,
@@ -28,9 +28,9 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
     setCurrent(new Date(month + '-01T00:00:00'))
   }, [month])
 
-  const holidaySet = new Set(holidayDates)
-  const leaveSet = new Set(leaveDates)
-  const weekendSet = new Set(weekendDates)
+  const holidaySet = useMemo(() => new Set(holidayDates), [holidayDates])
+  const leaveSet = useMemo(() => new Set(leaveDates), [leaveDates])
+  const weekendSet = useMemo(() => new Set(weekendDates), [weekendDates])
 
   const monthStart = startOfMonth(current)
   const monthEnd = endOfMonth(current)
@@ -54,7 +54,7 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
       <div className="flex items-center justify-between mb-3">
         <button
           onClick={() => setCurrent(prev => subMonths(prev, 1))}
-          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 text-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1"
+          className="w-11 h-11 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 text-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1"
           aria-label="上個月"
         >
           ‹
@@ -64,7 +64,7 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
         </span>
         <button
           onClick={() => setCurrent(prev => addMonths(prev, 1))}
-          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 text-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1"
+          className="w-11 h-11 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 text-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1"
           aria-label="下個月"
         >
           ›

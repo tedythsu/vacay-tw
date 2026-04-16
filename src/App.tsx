@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { format } from 'date-fns'
 import { calculateStrategies, getAllHolidayDates } from './engine/strategy'
 import { StrategyCard } from './components/StrategyCard'
@@ -42,11 +42,17 @@ export default function App() {
   const sheetRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
 
-  const allStrategies = calculateStrategies(selectedYear, ALL_HOLIDAYS[String(selectedYear)] ?? [])
+  const allStrategies = useMemo(
+    () => calculateStrategies(selectedYear, ALL_HOLIDAYS[String(selectedYear)] ?? []),
+    [selectedYear]
+  )
   // Only keep strategies whose end date is today or in the future
-  const strategies = allStrategies.filter(s => s.end >= today)
+  const strategies = useMemo(() => allStrategies.filter(s => s.end >= today), [allStrategies])
 
-  const allYearHolidayDates = getAllHolidayDates(ALL_HOLIDAYS[String(selectedYear)] ?? [])
+  const allYearHolidayDates = useMemo(
+    () => getAllHolidayDates(ALL_HOLIDAYS[String(selectedYear)] ?? []),
+    [selectedYear]
+  )
 
   // Lock body scroll when sheet is open
   useEffect(() => {
@@ -215,7 +221,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-page font-sans">
-      <div className="max-w-lg mx-auto px-4" inert={sheetOpen || undefined}>
+      <main className="max-w-lg mx-auto px-4" inert={sheetOpen || undefined}>
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <header className="pt-8 pb-6 text-center">
@@ -227,7 +233,7 @@ export default function App() {
 
         {/* ── Year Tabs (only when multiple confirmed years) ───────── */}
         {confirmedYears.length > 1 && (
-          <div role="tablist" className="flex border-b-2 border-slate-100 mb-4">
+          <div role="tablist" aria-label="年份選擇" className="flex border-b-2 border-slate-100 mb-4">
             {confirmedYears.map(year => (
               <button
                 key={year}
@@ -271,7 +277,7 @@ export default function App() {
               +
             </button>
           </div>
-          <span className="text-sm text-slate-600">天假，幫我找最佳方案</span>
+          <span className="text-sm text-slate-600">天假</span>
         </div>
 
         {/* ── CP Filter Pills ─────────────────────────────────────── */}
@@ -475,7 +481,7 @@ export default function App() {
           </p>
           <p className="text-xs text-slate-300">© {confirmedYears[confirmedYears.length - 1]} vacay.tw</p>
         </footer>
-      </div>
+      </main>
 
       {/* ── Calendar Bottom Sheet ───────────────────────────────── */}
       {selectedStrategy && (
@@ -498,7 +504,7 @@ export default function App() {
             aria-modal="true"
             aria-label="月曆預覽"
             className={[
-              'fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl',
+              'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-50 bg-white rounded-t-3xl shadow-2xl',
               'transition-transform duration-300 ease-out',
               'max-h-[88vh] flex flex-col',
               sheetOpen ? 'translate-y-0' : 'translate-y-full',
@@ -515,7 +521,7 @@ export default function App() {
                 <p className="text-base font-bold text-slate-900 leading-tight">
                   {selectedStrategy.name}
                 </p>
-                <p className="text-xs text-slate-400 mt-0.5 tabular-nums">
+                <p className="text-xs text-slate-500 mt-0.5 tabular-nums">
                   {selectedStrategy.start} → {selectedStrategy.end}
                   　·　共 {selectedStrategy.totalDays} 天
                 </p>
