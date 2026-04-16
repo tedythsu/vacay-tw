@@ -44,7 +44,7 @@ export default function App() {
   const [showUpsells, setShowUpsells] = useState(false)
   const [showUnderBudget, setShowUnderBudget] = useState(false)
   const [budget, setBudget] = useState(3)
-  const [sortBy, setSortBy] = useState<'cp' | 'date' | 'leave' | 'total'>('cp')
+  const [sortBy, setSortBy] = useState<'date' | 'total'>('total')
   const [shareCopied, setShareCopied] = useState(false)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [cpFilter, setCpFilter] = useState<'all' | 'mid' | 'high' | 'vhigh'>('all')
@@ -135,7 +135,7 @@ export default function App() {
   }
 
   const DEFAULT_SORT_DIR: Record<typeof sortBy, 'asc' | 'desc'> = {
-    cp: 'desc', date: 'asc', leave: 'asc', total: 'desc',
+    date: 'asc', total: 'desc',
   }
 
   function handleSortChange(next: typeof sortBy) {
@@ -180,27 +180,24 @@ export default function App() {
 
   type S = typeof exactBudget[number]
 
-  // Three-level comparator: cpValue → totalDays (all descending)
-  // For exactBudget leaveDays === budget, so adjustedScore = cpValue — no normalisation needed.
-  const cpCompareFn = (a: S, b: S): number => {
-    const cpDiff = (a.cpValue ?? 0) - (b.cpValue ?? 0)
-    if (Math.abs(cpDiff) > 0.0001) return cpDiff
-    return a.totalDays - b.totalDays
+  // With fixed budget, rank by total rest days; use earliest start as tiebreaker.
+  const totalCompareFn = (a: S, b: S): number => {
+    const diff = a.totalDays - b.totalDays
+    if (diff !== 0) return diff
+    return b.start.localeCompare(a.start) // earlier date wins on tie
   }
 
-  // Best strategy: scoped to exactBudget (user asked for N days, badge on best N-day option)
+  // Best strategy: most total rest days within the exact budget
   const bestStrategy = exactBudget.length > 0
-    ? exactBudget.reduce((best, s) => cpCompareFn(s, best) > 0 ? s : best)
+    ? exactBudget.reduce((best, s) => totalCompareFn(s, best) > 0 ? s : best)
     : null
 
   const sortFn = (a: S, b: S) => {
     const dir = sortDir === 'asc' ? 1 : -1
     switch (sortBy) {
       case 'date':  return dir * a.start.localeCompare(b.start)
-      case 'leave': return dir * (a.leaveDays - b.leaveDays)
-      case 'total': return dir * (a.totalDays - b.totalDays)
-      case 'cp':
-      default:      return dir * cpCompareFn(a, b)
+      case 'total':
+      default:      return dir * totalCompareFn(a, b)
     }
   }
 
@@ -274,7 +271,7 @@ export default function App() {
 
         {/* ── Budget Stepper ──────────────────────────────────────── */}
         <div className="flex items-center justify-center gap-3 bg-white rounded-2xl border border-slate-100 shadow-md px-4 py-4 mb-6">
-          <span className="text-sm text-slate-600">我有</span>
+          <span className="text-sm text-slate-600">我要請</span>
           <div role="group" aria-label="請假天數" className="flex items-center gap-2">
             <button
               onClick={() => handleBudgetChange(-1)}
@@ -299,7 +296,7 @@ export default function App() {
               +
             </button>
           </div>
-          <span className="text-sm text-slate-600">天假</span>
+          <span className="text-sm text-slate-600">天</span>
         </div>
 
         {/* ── CP Filter Pills ─────────────────────────────────────── */}
@@ -332,9 +329,8 @@ export default function App() {
         <div className="mb-5">
           <div role="group" aria-label="排序方式" className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
             {([
-              { key: 'cp',    label: 'CP值' },
-              { key: 'date',  label: '日期' },
               { key: 'total', label: '連休天數' },
+              { key: 'date',  label: '日期' },
             ] as const).map(({ key, label }) => (
               <button
                 key={key}
@@ -380,7 +376,7 @@ export default function App() {
                     strategy={item.strategy}
                     isSelected={selectedStrategy?.id === item.strategy.id}
                     isUpsell={false}
-                    isBest={bestStrategy !== null && cpCompareFn(item.strategy, bestStrategy) === 0}
+                    isBest={bestStrategy !== null && totalCompareFn(item.strategy, bestStrategy) === 0}
                     onSelect={() => handleSelectStrategy(item.strategy)}
                   />
                 </div>
