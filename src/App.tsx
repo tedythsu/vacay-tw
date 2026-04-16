@@ -4,6 +4,7 @@ import { calculateStrategies, getAllHolidayDates } from './engine/strategy'
 import { StrategyCard } from './components/StrategyCard'
 import { Calendar } from './components/Calendar'
 import { YearCalendarSheet } from './components/YearCalendarSheet'
+import { MonthRangePicker } from './components/MonthRangePicker'
 import type { HolidayEntry } from './engine/strategy'
 import holidaysData from './data/holidays.json'
 
@@ -36,6 +37,8 @@ export default function App() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
+  const [monthFilterEnabled, setMonthFilterEnabled] = useState(false)
+  const [monthRange, setMonthRange] = useState<[number, number]>([1, 12])
   const [toggledGroups, setToggledGroups] = useState<Set<number>>(new Set())
   const [shareCopied, setShareCopied] = useState(false)
   const [yearCalOpen, setYearCalOpen] = useState(false)
@@ -109,6 +112,8 @@ export default function App() {
     setSheetOpen(false)
     setYearCalOpen(false)
     setShowFreebies(false)
+    setMonthFilterEnabled(false)
+    setMonthRange([1, 12])
     setToggledGroups(new Set())
     window.history.replaceState(null, '', location.pathname)
   }
@@ -128,9 +133,18 @@ export default function App() {
     })
   }
 
+  // ── Month filter ────────────────────────────────────────────────────────────
+  function matchesMonthFilter(s: ReturnType<typeof calculateStrategies>[number]): boolean {
+    if (!monthFilterEnabled) return true
+    const sMonth = parseInt(s.start.slice(5, 7))
+    const eMonth = parseInt(s.end.slice(5, 7))
+    // Show if the strategy's date range overlaps with the selected month range
+    return sMonth <= monthRange[1] && eMonth >= monthRange[0]
+  }
+
   // ── Budget filtering ────────────────────────────────────────────────────────
-  const freebies = strategies.filter(s => s.isFreebie)
-  const exactBudget = strategies.filter(s => !s.isFreebie && s.leaveDays === budget)
+  const freebies = strategies.filter(s => s.isFreebie && matchesMonthFilter(s))
+  const exactBudget = strategies.filter(s => !s.isFreebie && s.leaveDays === budget && matchesMonthFilter(s))
 
   type S = typeof exactBudget[number]
 
@@ -201,6 +215,36 @@ export default function App() {
                   <span className="text-sm text-slate-600">年</span>
                 </div>
               )}
+
+              {/* Month filter toggle + slider */}
+              <div className="border-t border-slate-100 pt-3">
+                <button
+                  onClick={() => {
+                    setMonthFilterEnabled(prev => !prev)
+                    if (monthFilterEnabled) setMonthRange([1, 12])
+                  }}
+                  className={[
+                    'w-full flex items-center justify-center gap-1.5 text-xs py-1 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
+                    monthFilterEnabled
+                      ? 'text-brand-600 font-medium'
+                      : 'text-slate-400 hover:text-slate-600',
+                  ].join(' ')}
+                  aria-expanded={monthFilterEnabled}
+                >
+                  <span>{monthFilterEnabled ? '月份篩選：' : '＋ 月份篩選'}</span>
+                  {monthFilterEnabled && (
+                    <span className="font-semibold tabular-nums">
+                      {monthRange[0]}月 – {monthRange[1]}月
+                    </span>
+                  )}
+                  {monthFilterEnabled && <span className="text-slate-300 ml-1">✕</span>}
+                </button>
+                {monthFilterEnabled && (
+                  <div className="mt-2 px-1">
+                    <MonthRangePicker value={monthRange} onChange={setMonthRange} />
+                  </div>
+                )}
+              </div>
 
               {/* Budget row */}
               <div className="flex items-center justify-center gap-3">
