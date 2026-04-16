@@ -82,15 +82,17 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest 
 
       {/* Stats row — only for non-freebie */}
       {!strategy.isFreebie && (
-        <div className="flex gap-2 mt-3">
+        <div className="flex items-center gap-1 mt-3">
           <div className={`flex-1 rounded-xl p-2 text-center ${isBest ? 'bg-amber-100' : 'bg-slate-50'}`}>
             <div className="text-sm font-bold text-slate-900">{strategy.baseDays}</div>
-            <div className="text-xs text-slate-400">天國定</div>
+            <div className="text-xs text-slate-400">天連假</div>
           </div>
+          <div className="text-slate-300 font-bold text-sm">+</div>
           <div className={`flex-1 rounded-xl p-2 text-center ${isBest ? 'bg-amber-100' : 'bg-slate-50'}`}>
-            <div className="text-sm font-bold text-slate-900">+{strategy.leaveDays}</div>
+            <div className="text-sm font-bold text-slate-900">{strategy.leaveDays}</div>
             <div className="text-xs text-slate-400">天請假</div>
           </div>
+          <div className="text-slate-300 font-bold text-sm">=</div>
           <div className={`flex-1 rounded-xl p-2 text-center ${isBest ? 'bg-amber-100' : 'bg-slate-50'}`}>
             <div className="text-sm font-bold text-slate-900">{strategy.totalDays}</div>
             <div className="text-xs text-slate-400">天連休</div>
