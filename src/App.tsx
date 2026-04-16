@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import { calculateStrategies, getAllHolidayDates } from './engine/strategy'
 import { StrategyCard } from './components/StrategyCard'
 import { Calendar } from './components/Calendar'
+import { YearCalendarSheet } from './components/YearCalendarSheet'
 import { AdSlot } from './components/AdSlot'
 import type { HolidayEntry } from './engine/strategy'
 import holidaysData from './data/holidays.json'
@@ -38,6 +39,7 @@ export default function App() {
   const [shareCopied, setShareCopied] = useState(false)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [cpFilter, setCpFilter] = useState<'all' | 'mid' | 'high' | 'vhigh'>('all')
+  const [yearCalOpen, setYearCalOpen] = useState(false)
 
   const sheetRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
@@ -108,6 +110,7 @@ export default function App() {
     setSelectedYear(year)
     setSelectedStrategy(null)
     setSheetOpen(false)
+    setYearCalOpen(false)
     setShowAll(false)
     setShowFreebies(false)
     setShowUpsells(false)
@@ -221,7 +224,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-page font-sans">
-      <main className="max-w-lg mx-auto px-4" inert={sheetOpen || undefined}>
+      <main className="max-w-lg mx-auto px-4" inert={(sheetOpen || yearCalOpen) || undefined}>
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <header className="pt-8 pb-6 text-center">
@@ -230,6 +233,16 @@ export default function App() {
           </h1>
           <p className="text-sm text-slate-500 mt-1">台灣請假攻略</p>
         </header>
+
+        {/* ── Year Calendar link ──────────────────────────────────── */}
+        <div className="flex justify-center mb-5 -mt-2">
+          <button
+            onClick={() => setYearCalOpen(true)}
+            className="text-xs text-slate-500 hover:text-brand-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded px-2 py-1"
+          >
+            📅 {selectedYear} 年國定假日總覽
+          </button>
+        </div>
 
         {/* ── Year Tabs (only when multiple confirmed years) ───────── */}
         {confirmedYears.length > 1 && (
@@ -486,6 +499,14 @@ export default function App() {
           <p className="text-xs text-slate-500">© {confirmedYears[confirmedYears.length - 1]} vacay.tw</p>
         </footer>
       </main>
+
+      {/* ── Year Calendar Sheet ─────────────────────────────────── */}
+      <YearCalendarSheet
+        year={selectedYear}
+        holidays={ALL_HOLIDAYS[String(selectedYear)] ?? []}
+        isOpen={yearCalOpen}
+        onClose={() => setYearCalOpen(false)}
+      />
 
       {/* ── Calendar Bottom Sheet ───────────────────────────────── */}
       {selectedStrategy && (
