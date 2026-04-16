@@ -262,15 +262,13 @@ export default function App() {
               ))}
             </div>
           )}
-          {/* Holiday count — tappable info row anchored to the year context */}
+          {/* Holiday overview trigger — anchored to the year context */}
           <button
             onClick={() => setYearCalOpen(true)}
-            className="w-full flex items-center justify-between py-2.5 text-xs text-slate-400 hover:text-brand-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded"
+            className="w-full flex items-center justify-between py-2.5 text-xs text-slate-600 hover:text-brand-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded"
           >
-            <span>
-              {ALL_HOLIDAYS[String(selectedYear)]?.filter(h => h.type === 'holiday').length ?? 0} 個國定假日
-            </span>
-            <span aria-hidden="true" className="text-slate-300">›</span>
+            <span className="font-medium">{selectedYear} 國定假日總覽</span>
+            <span aria-hidden="true" className="text-slate-400">›</span>
           </button>
         </div>
 

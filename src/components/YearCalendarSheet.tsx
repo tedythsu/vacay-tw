@@ -143,7 +143,7 @@ export function YearCalendarSheet({ year, holidays, isOpen, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 shrink-0">
           <div>
-            <p className="text-base font-bold text-slate-900">{year} 年假日總覽</p>
+            <p className="text-base font-bold text-slate-900">{year} 國定假日總覽</p>
             <p className="text-xs text-slate-500 mt-0.5">
               {nationalHolidays.length} 個國定假日
               {makeupHolidays.length > 0 && `・${makeupHolidays.length} 個補班日`}
