@@ -143,6 +143,11 @@ function expandRange(
   return { start: s, end: e }
 }
 
+// Maximum leave days a single strategy may consume (mirrors MAX_BUDGET in App.tsx).
+// All front/back extension combinations are generated up to this total so that
+// expandRange can naturally absorb any weekend boundary regardless of the holiday layout.
+const MAX_LEAVE_DAYS = 7
+
 // ─── Strategy Builder ─────────────────────────────────────────────────────────
 
 function buildStrategy(
@@ -252,12 +257,13 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
     const freebie = buildStrategy(holiday, baseStart, baseEnd, allHolidayDates, makeupDates, year, false, baseDays)
     if (freebie) strategies.push(freebie)
 
-    // Enumerate leave extensions: front 0-4 days, back 0-4 days, total ≤ 5
-    // Upper bound is 4 (not 3) so a 4-day run can reach the next weekend boundary.
-    for (let front = 0; front <= 4; front++) {
-      for (let back = 0; back <= 4; back++) {
+    // Enumerate all leave extensions up to MAX_LEAVE_DAYS total.
+    // No per-direction cap — expandRange absorbs any trailing weekend automatically,
+    // so the right number of days naturally emerges for each holiday layout.
+    for (let front = 0; front <= MAX_LEAVE_DAYS; front++) {
+      for (let back = 0; back <= MAX_LEAVE_DAYS; back++) {
         if (front === 0 && back === 0) continue // freebie already handled
-        if (front + back > 5) continue
+        if (front + back > MAX_LEAVE_DAYS) continue
 
         // Walk backward from baseStart to find `front` actual workdays
         let leaveStart = baseStart
