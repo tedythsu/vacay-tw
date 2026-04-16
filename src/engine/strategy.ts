@@ -147,7 +147,7 @@ function expandRange(
 // Maximum leave days a single strategy may consume (mirrors MAX_BUDGET in App.tsx).
 // All front/back extension combinations are generated up to this total so that
 // expandRange can naturally absorb any weekend boundary regardless of the holiday layout.
-const MAX_LEAVE_DAYS = 7
+const MAX_LEAVE_DAYS = 30
 
 // ─── Strategy Builder ─────────────────────────────────────────────────────────
 
