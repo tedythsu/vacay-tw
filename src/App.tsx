@@ -31,10 +31,23 @@ const ALL_HOLIDAY_DATES = new Map(
   confirmedYears.map(y => [y, getAllHolidayDates(ALL_HOLIDAYS[String(y)] ?? [])])
 )
 
+// Parse deep-link hash at module init — location.hash is synchronously available,
+// so initial state can be derived here instead of inside a setState-in-effect.
+function parseHashState() {
+  const hash = location.hash.slice(1)
+  if (!hash) return null
+  const year = yearOfStrategyId(hash)
+  if (!year) return null
+  const match = ALL_STRATEGIES.get(year)?.find(s => s.id === hash)
+  if (!match) return null
+  return { year, strategy: match }
+}
+const INITIAL_HASH_STATE = parseHashState()
+
 export default function App() {
-  const [selectedYear, setSelectedYear] = useState<number>(confirmedYears[0])
-  const [selectedStrategy, setSelectedStrategy] = useState<ReturnType<typeof calculateStrategies>[number] | null>(null)
-  const [sheetOpen, setSheetOpen] = useState(false)
+  const [selectedYear, setSelectedYear] = useState<number>(INITIAL_HASH_STATE?.year ?? confirmedYears[0])
+  const [selectedStrategy, setSelectedStrategy] = useState<ReturnType<typeof calculateStrategies>[number] | null>(INITIAL_HASH_STATE?.strategy ?? null)
+  const [sheetOpen, setSheetOpen] = useState(INITIAL_HASH_STATE != null)
   const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
   const [monthFilterEnabled, setMonthFilterEnabled] = useState(false)
@@ -46,9 +59,8 @@ export default function App() {
   const sheetRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
   // Keeps last strategy visible during the slide-out animation (selectedStrategy clears on close)
-  const lastStrategyRef = useRef<typeof allStrategies[number] | null>(null)
-  if (selectedStrategy) lastStrategyRef.current = selectedStrategy
-  const displayStrategy = selectedStrategy ?? lastStrategyRef.current
+  const [lastStrategy, setLastStrategy] = useState<ReturnType<typeof calculateStrategies>[number] | null>(INITIAL_HASH_STATE?.strategy ?? null)
+  const displayStrategy = selectedStrategy ?? lastStrategy
 
   const allStrategies = ALL_STRATEGIES.get(selectedYear) ?? []
   // Only keep strategies whose end date is today or in the future
@@ -72,22 +84,10 @@ export default function App() {
     }
   }, [sheetOpen])
 
-  // Deep-link initialization: read URL hash on mount
+  // Deep-link: scroll the linked card into view after mount
   useEffect(() => {
+    if (!INITIAL_HASH_STATE) return
     const hash = location.hash.slice(1)
-    if (!hash) return
-
-    const year = yearOfStrategyId(hash)
-    if (!year) return
-
-    const yearStrategies = calculateStrategies(year, ALL_HOLIDAYS[String(year)] ?? [])
-    const match = yearStrategies.find(s => s.id === hash)
-    if (!match) return
-
-    setSelectedYear(year)
-    setSelectedStrategy(match)
-    setSheetOpen(true)
-
     requestAnimationFrame(() => {
       document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
@@ -96,6 +96,7 @@ export default function App() {
   function handleSelectStrategy(strategy: ReturnType<typeof calculateStrategies>[number]) {
     triggerRef.current = document.activeElement as HTMLElement
     setSelectedStrategy(strategy)
+    setLastStrategy(strategy)
     setSheetOpen(true)
     window.history.replaceState(null, '', '#' + strategy.id)
   }
@@ -462,7 +463,7 @@ export default function App() {
                     {displayStrategy.name}
                   </p>
                   <p className="text-xs text-slate-500 mt-0.5 tabular-nums">
-                    {displayStrategy.start} → {displayStrategy.end}　·　共 {displayStrategy.totalDays} 天
+                    {displayStrategy.start} → {displayStrategy.end} · 共 {displayStrategy.totalDays} 天
                   </p>
                 </div>
                 <button
