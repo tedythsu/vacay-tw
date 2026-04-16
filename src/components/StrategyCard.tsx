@@ -8,11 +8,13 @@ interface Props {
   isBest?: boolean
 }
 
-function cpLabel(cp: number): { text: string; className: string } {
-  if (cp >= 2.0) return { text: '極高', className: 'text-emerald-600' }
-  if (cp >= 1.5) return { text: '高',   className: 'text-sky-500' }
-  if (cp >= 1.0) return { text: '中',   className: 'text-slate-600' }
-  return              { text: '低',   className: 'text-slate-400' }
+function cpLabel(cp: number, totalDays: number): { text: string; className: string } {
+  // 極高: must be both efficient AND yield a long vacation (≥7 days)
+  if (cp >= 2.0 && totalDays >= 7) return { text: '極高', className: 'text-emerald-600' }
+  // 高: good efficiency, or long vacation regardless of efficiency
+  if (cp >= 1.5 || totalDays >= 10)  return { text: '高',   className: 'text-sky-500' }
+  if (cp >= 1.0)                     return { text: '中',   className: 'text-slate-600' }
+  return                                    { text: '低',   className: 'text-slate-400' }
 }
 
 export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest }: Props) {
@@ -68,7 +70,7 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest 
           </div>
         </div>
         {!strategy.isFreebie && (() => {
-          const { text, className } = cpLabel(strategy.cpValue!)
+          const { text, className } = cpLabel(strategy.cpValue!, strategy.totalDays)
           return (
             <div className="text-right shrink-0">
               <div className={`text-xl font-extrabold leading-none ${isBest ? 'text-amber-500' : className}`}>{text}</div>

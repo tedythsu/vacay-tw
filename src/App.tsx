@@ -120,18 +120,27 @@ export default function App() {
     setShowAll(false)
   }
 
-  const CP_FILTER_MIN: Record<typeof cpFilter, number> = {
-    all: 0, mid: 1.0, high: 1.5, vhigh: 2.0,
+  // Mirrors the cpLabel logic in StrategyCard so filter tiers match displayed labels.
+  function matchesCpFilter(s: ReturnType<typeof calculateStrategies>[number]): boolean {
+    const cp = s.cpValue ?? 0
+    switch (cpFilter) {
+      case 'vhigh': return cp >= 2.0 && s.totalDays >= 7
+      case 'high':  return cp >= 1.5 || s.totalDays >= 10
+      case 'mid':   return cp >= 1.0
+      default:      return true
+    }
   }
 
   // ── Budget filtering & sorting ──────────────────────────────────────────────
   const freebies = strategies.filter(s => s.isFreebie)
   const withinBudget = strategies.filter(s =>
-    !s.isFreebie && s.leaveDays <= budget && (s.cpValue ?? 0) >= CP_FILTER_MIN[cpFilter]
+    !s.isFreebie && s.leaveDays <= budget && matchesCpFilter(s)
   )
-  const upsells = strategies.filter(s =>
-    !s.isFreebie && s.leaveDays === budget + 1 && (s.cpValue ?? 0) >= Math.max(1.5, CP_FILTER_MIN[cpFilter])
-  )
+  const upsells = strategies.filter(s => {
+    if (s.isFreebie || s.leaveDays !== budget + 1) return false
+    const cp = s.cpValue ?? 0
+    return (cp >= 1.5 || s.totalDays >= 10) && matchesCpFilter(s)
+  })
 
   // Adjusted score normalises by *budget* so strategies that use fewer leave
   // days than the budget don't unfairly beat ones that fully use it.
