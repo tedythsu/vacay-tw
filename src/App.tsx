@@ -165,58 +165,82 @@ export default function App() {
           <p className="text-sm text-slate-500 mt-1">台灣請假攻略</p>
         </header>
 
-        {/* ── Year Tabs + Holiday count row ───────────────────────── */}
-        <div className="border-b border-slate-100 mb-4">
-          {confirmedYears.length > 1 && (
-            <div role="group" aria-label="年份選擇" className="flex border-b border-slate-100">
-              {confirmedYears.map(year => (
-                <button
-                  key={year}
-                  aria-pressed={selectedYear === year}
-                  onClick={() => handleYearChange(year)}
-                  className={[
-                    'flex-1 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset',
-                    selectedYear === year
-                      ? 'text-brand-600 border-b-2 border-brand-600 -mb-[1px]'
-                      : 'text-slate-500 hover:text-slate-700',
-                  ].join(' ')}
-                >
-                  {year}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* ── Query Block (year + budget, merged) ─────────────────── */}
+        {(() => {
+          const yearIndex = confirmedYears.indexOf(selectedYear)
+          const prevYear = confirmedYears[yearIndex - 1]
+          const nextYear = confirmedYears[yearIndex + 1]
+          const hasPastFiltered = allStrategies.length > strategies.length
+          return (
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 py-4 mb-6 space-y-3">
+              {/* Year row */}
+              {confirmedYears.length > 1 && (
+                <div className="flex items-center justify-center gap-3">
+                  <span className="text-sm text-slate-600">我要在</span>
+                  <div role="group" aria-label="年份選擇" className="flex items-center gap-2">
+                    <button
+                      onClick={() => prevYear && handleYearChange(prevYear)}
+                      disabled={!prevYear}
+                      className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                      aria-label="上一年"
+                    >
+                      ‹
+                    </button>
+                    <span className="text-3xl font-bold text-slate-800 w-16 text-center tabular-nums">
+                      {selectedYear}
+                    </span>
+                    <button
+                      onClick={() => nextYear && handleYearChange(nextYear)}
+                      disabled={!nextYear}
+                      className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                      aria-label="下一年"
+                    >
+                      ›
+                    </button>
+                  </div>
+                  <span className="text-sm text-slate-600">年</span>
+                </div>
+              )}
 
-        {/* ── Budget Stepper ──────────────────────────────────────── */}
-        <div className="flex items-center justify-center gap-3 bg-white rounded-2xl border border-slate-100 shadow-md px-4 py-4 mb-6">
-          <span className="text-sm text-slate-600">我要請</span>
-          <div role="group" aria-label="請假天數" className="flex items-center gap-2">
-            <button
-              onClick={() => handleBudgetChange(-1)}
-              disabled={budget <= MIN_BUDGET}
-              className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-              aria-label="減少請假天數"
-            >
-              −
-            </button>
-            <span
-              aria-label={`目前 ${budget} 天`}
-              className="text-3xl font-bold text-brand-600 w-9 text-center tabular-nums"
-            >
-              {budget}
-            </span>
-            <button
-              onClick={() => handleBudgetChange(1)}
-              disabled={budget >= MAX_BUDGET}
-              className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-              aria-label="增加請假天數"
-            >
-              +
-            </button>
-          </div>
-          <span className="text-sm text-slate-600">天假</span>
-        </div>
+              {/* Budget row */}
+              <div className="flex items-center justify-center gap-3">
+                <span className="text-sm text-slate-600">請</span>
+                <div role="group" aria-label="請假天數" className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleBudgetChange(-1)}
+                    disabled={budget <= MIN_BUDGET}
+                    className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                    aria-label="減少請假天數"
+                  >
+                    −
+                  </button>
+                  <span
+                    aria-label={`目前 ${budget} 天`}
+                    className="text-3xl font-bold text-brand-600 w-9 text-center tabular-nums"
+                  >
+                    {budget}
+                  </span>
+                  <button
+                    onClick={() => handleBudgetChange(1)}
+                    disabled={budget >= MAX_BUDGET}
+                    className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                    aria-label="增加請假天數"
+                  >
+                    +
+                  </button>
+                </div>
+                <span className="text-sm text-slate-600">天假</span>
+              </div>
+
+              {/* Dynamic note — only when past dates have been filtered */}
+              {hasPastFiltered && (
+                <p className="text-xs text-slate-400 text-center pt-1 border-t border-slate-100">
+                  僅顯示今日起尚未到來的假期
+                </p>
+              )}
+            </div>
+          )
+        })()}
 
         {/* ── Paid Strategy List (grouped by 連休天數) ────────────── */}
         {paidStrategies.length === 0 ? (
