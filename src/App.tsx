@@ -150,7 +150,12 @@ export default function App() {
       case 'leave': return dir * (a.leaveDays - b.leaveDays)
       case 'total': return dir * (a.totalDays - b.totalDays)
       case 'cp':
-      default:      return dir * ((a.cpValue ?? 0) - (b.cpValue ?? 0))
+      default: {
+        // Primary: adjustedScore (budget-normalised), Secondary: raw cpValue
+        const diff = adjustedScore(a) - adjustedScore(b)
+        if (Math.abs(diff) > 0.0001) return dir * diff
+        return dir * ((a.cpValue ?? 0) - (b.cpValue ?? 0))
+      }
     }
   }
 
