@@ -481,10 +481,10 @@ export default function App() {
 
         {/* ── Footer ─────────────────────────────────────────────── */}
         <footer className="py-6 border-t border-slate-100 text-center space-y-1">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             正式請假請依行政院人事行政總處公告為準。
           </p>
-          <p className="text-xs text-slate-400">© {confirmedYears[confirmedYears.length - 1]} vacay.tw</p>
+          <p className="text-xs text-slate-500">© {confirmedYears[confirmedYears.length - 1]} vacay.tw</p>
         </footer>
       </main>
 

@@ -43,7 +43,7 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
     if (!inMonth) return `${base} text-slate-200`
     if (holidaySet.has(dateStr)) return `${base} bg-red-100 text-red-600 font-bold`
     if (leaveSet.has(dateStr)) return `${base} bg-yellow-100 text-yellow-700 font-bold`
-    if (weekendSet.has(dateStr)) return `${base} bg-slate-100 text-slate-400`
+    if (weekendSet.has(dateStr)) return `${base} bg-slate-100 text-slate-500`
     if (isWeekend(new Date(dateStr + 'T00:00:00'))) return `${base} text-slate-300`
     return `${base} text-slate-700`
   }
@@ -74,7 +74,7 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
       {/* Day-of-week header */}
       <div className="grid grid-cols-7 mb-1">
         {DAY_LABELS.map(d => (
-          <div key={d} className="text-center text-xs text-slate-400 py-1">
+          <div key={d} className="text-center text-xs text-slate-500 py-1">
             {d}
           </div>
         ))}
