@@ -234,9 +234,9 @@ export default function App() {
         ) : (
           <div className="mb-2 space-y-2">
             {groupedPaid.map(([totalDays, group], gi) => {
+              const isBestGroup = gi === 0
               // Best group: open by default, toggled = closed. Others: closed by default, toggled = open.
               const collapsed = isBestGroup ? toggledGroups.has(totalDays) : !toggledGroups.has(totalDays)
-              const isBestGroup = gi === 0
               return (
                 <div
                   key={totalDays}
@@ -325,7 +325,6 @@ export default function App() {
                       <StrategyCard
                         strategy={s}
                         isSelected={selectedStrategy?.id === s.id}
-                        isUpsell={false}
                         showTotalDays
                         onSelect={() => handleSelectStrategy(s)}
                       />
