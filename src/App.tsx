@@ -314,7 +314,6 @@ export default function App() {
             {([
               { key: 'cp',    label: 'CP值' },
               { key: 'date',  label: '日期' },
-              { key: 'leave', label: '請假天數' },
               { key: 'total', label: '連休天數' },
             ] as const).map(({ key, label }) => (
               <button
@@ -527,8 +526,7 @@ export default function App() {
                   {selectedStrategy.name}
                 </p>
                 <p className="text-xs text-slate-500 mt-0.5 tabular-nums">
-                  {selectedStrategy.start} → {selectedStrategy.end}
-                  　·　共 {selectedStrategy.totalDays} 天
+                  {selectedStrategy.start} → {selectedStrategy.end}　·　共 {selectedStrategy.totalDays} 天
                 </p>
               </div>
               <button

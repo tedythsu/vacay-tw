@@ -55,9 +55,16 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest 
       {/* Header row */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-sm text-slate-500 truncate">{strategy.name}</div>
+          {/* Name + base days context */}
+          <div className="text-sm text-slate-500 truncate">
+            {strategy.name}
+            {!strategy.isFreebie && (
+              <span className="text-slate-400"> · {strategy.baseDays}天連假</span>
+            )}
+          </div>
+          {/* Hero: total rest days (the result of the strategy) */}
           <div className="text-lg font-bold text-slate-900 leading-tight tabular-nums">
-            休 {strategy.totalDays} 天
+            連休 {strategy.totalDays} 天
           </div>
           <div className="text-xs text-slate-500 mt-0.5">
             {strategy.start.replace(/-/g, '/')} ～ {strategy.end.replace(/-/g, '/')}
@@ -73,26 +80,6 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest 
           )
         })()}
       </div>
-
-      {/* Stats row — only for non-freebie */}
-      {!strategy.isFreebie && (
-        <div className="flex items-center gap-1 mt-3 pt-3 border-t border-slate-100">
-          <div className="flex-1 text-center">
-            <div className="text-sm font-bold text-slate-900 tabular-nums">{strategy.baseDays}</div>
-            <div className="text-xs text-slate-500 tracking-wide">天連假</div>
-          </div>
-          <div className="text-slate-300 font-bold text-sm">+</div>
-          <div className="flex-1 text-center">
-            <div className="text-sm font-bold text-slate-900 tabular-nums">{strategy.leaveDays}</div>
-            <div className="text-xs text-slate-500 tracking-wide">天請假</div>
-          </div>
-          <div className="text-slate-300 font-bold text-sm">=</div>
-          <div className="flex-1 text-center">
-            <div className="text-sm font-bold text-slate-900 tabular-nums">{strategy.totalDays}</div>
-            <div className="text-xs text-slate-500 tracking-wide">天連休</div>
-          </div>
-        </div>
-      )}
     </button>
   )
 }
