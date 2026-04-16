@@ -259,31 +259,44 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
     const freebie = buildStrategy(holiday, baseStart, baseEnd, allHolidayDates, makeupDates, year, false, baseDays)
     if (freebie) strategies.push(freebie)
 
-    // Enumerate all leave extensions up to MAX_LEAVE_DAYS total.
-    // No per-direction cap — expandRange absorbs any trailing weekend automatically,
-    // so the right number of days naturally emerges for each holiday layout.
+    // Precompute workday anchor points once per holiday so inner loop is O(1) lookup.
+    // backSteps[n] = Date after stepping n workdays backward from baseStart
+    // fwdSteps[n]  = Date after stepping n workdays forward  from baseEnd
+    const backSteps: Date[] = [baseStart]
+    {
+      let cur = baseStart
+      while (backSteps.length <= MAX_LEAVE_DAYS) {
+        cur = subDays(cur, 1)
+        const ds = format(cur, 'yyyy-MM-dd')
+        if ((!isWeekend(cur) && !allHolidayDates.has(ds)) || makeupDates.has(ds)) backSteps.push(cur)
+      }
+    }
+    const fwdSteps: Date[] = [baseEnd]
+    {
+      let cur = baseEnd
+      while (fwdSteps.length <= MAX_LEAVE_DAYS) {
+        cur = addDays(cur, 1)
+        const ds = format(cur, 'yyyy-MM-dd')
+        if ((!isWeekend(cur) && !allHolidayDates.has(ds)) || makeupDates.has(ds)) fwdSteps.push(cur)
+      }
+    }
+
+    // Deduplicate by expanded range: many (front, back) combos map to the same window
+    // after expandRange absorbs surrounding weekends — skip those immediately.
+    const seen = new Set<string>()
+
     for (let front = 0; front <= MAX_LEAVE_DAYS; front++) {
       for (let back = 0; back <= MAX_LEAVE_DAYS; back++) {
         if (front === 0 && back === 0) continue // freebie already handled
         if (front + back > MAX_LEAVE_DAYS) continue
 
-        // Walk backward from baseStart to find `front` actual workdays
-        let leaveStart = baseStart
-        let remaining = front
-        while (remaining > 0) {
-          leaveStart = subDays(leaveStart, 1)
-          const ds = format(leaveStart, 'yyyy-MM-dd')
-          if ((!isWeekend(leaveStart) && !allHolidayDates.has(ds)) || makeupDates.has(ds)) remaining--
-        }
+        const leaveStart = backSteps[front]
+        const leaveEnd   = fwdSteps[back]
 
-        // Walk forward from baseEnd to find `back` actual workdays
-        let leaveEnd = baseEnd
-        remaining = back
-        while (remaining > 0) {
-          leaveEnd = addDays(leaveEnd, 1)
-          const ds = format(leaveEnd, 'yyyy-MM-dd')
-          if ((!isWeekend(leaveEnd) && !allHolidayDates.has(ds)) || makeupDates.has(ds)) remaining--
-        }
+        const { start: expStart, end: expEnd } = expandRange(leaveStart, leaveEnd, allHolidayDates, makeupDates)
+        const key = `${expStart.getTime()}-${expEnd.getTime()}`
+        if (seen.has(key)) continue
+        seen.add(key)
 
         const strategy = buildStrategy(holiday, leaveStart, leaveEnd, allHolidayDates, makeupDates, year, false, baseDays)
         if (strategy) strategies.push(strategy)

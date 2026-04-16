@@ -240,7 +240,7 @@ export default function App() {
             onClick={() => setYearCalOpen(true)}
             className="text-xs text-slate-500 hover:text-brand-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded px-2 py-1"
           >
-            📅 {selectedYear} 年國定假日總覽
+            {selectedYear} 年國定假日總覽
           </button>
         </div>
 
