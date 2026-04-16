@@ -52,6 +52,10 @@ export default function App() {
 
   const sheetRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
+  // Keeps last strategy visible during the slide-out animation (selectedStrategy clears on close)
+  const lastStrategyRef = useRef<typeof allStrategies[number] | null>(null)
+  if (selectedStrategy) lastStrategyRef.current = selectedStrategy
+  const displayStrategy = selectedStrategy ?? lastStrategyRef.current
 
   const allStrategies = ALL_STRATEGIES.get(selectedYear) ?? []
   // Only keep strategies whose end date is today or in the future
@@ -512,85 +516,88 @@ export default function App() {
       />
 
       {/* ── Calendar Bottom Sheet ───────────────────────────────── */}
-      {selectedStrategy && (
-        <>
-          {/* Backdrop */}
-          <div
-            className={[
-              'fixed inset-0 bg-black/40 z-40 transition-opacity duration-300',
-              sheetOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
-            ].join(' ')}
-            onClick={handleCloseSheet}
-            aria-hidden="true"
-          />
+      {/* Always in DOM so CSS transition runs on both open and close */}
+      <>
+        {/* Backdrop */}
+        <div
+          className={[
+            'fixed inset-0 bg-black/40 z-40 transition-opacity duration-300',
+            sheetOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
+          ].join(' ')}
+          onClick={handleCloseSheet}
+          aria-hidden="true"
+        />
 
-          {/* Sheet */}
-          <div
-            ref={sheetRef}
-            tabIndex={-1}
-            role="dialog"
-            aria-modal="true"
-            aria-label="月曆預覽"
-            className={[
-              'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-50 bg-white rounded-t-3xl shadow-2xl',
-              'transition-transform duration-300 ease-out',
-              'max-h-[88vh] flex flex-col',
-              sheetOpen ? 'translate-y-0' : 'translate-y-full',
-            ].join(' ')}
-          >
-            {/* Drag handle */}
-            <div className="flex justify-center pt-3 pb-1 shrink-0">
-              <div className="w-10 h-1 bg-slate-200 rounded-full" />
-            </div>
-
-            {/* Sheet header */}
-            <div className="flex items-center justify-between px-5 py-4 shrink-0">
-              <div>
-                <p className="text-base font-bold text-slate-900 leading-tight">
-                  {selectedStrategy.name}
-                </p>
-                <p className="text-xs text-slate-500 mt-0.5 tabular-nums">
-                  {selectedStrategy.start} → {selectedStrategy.end}　·　共 {selectedStrategy.totalDays} 天
-                </p>
-              </div>
-              <button
-                onClick={handleCloseSheet}
-                className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                aria-label="關閉"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Scrollable content */}
-            <div className="overflow-y-auto px-5 pb-6 flex-1">
-              <Calendar
-                key={selectedStrategy.id}
-                month={selectedStrategy.start.slice(0, 7)}
-                holidayDates={allYearHolidayDates}
-                leaveDates={selectedStrategy.suggestedLeaveDates}
-                weekendDates={selectedStrategy.weekendDates}
-              />
-
-              <button
-                onClick={async () => {
-                  const url = `${location.origin}${location.pathname}#${selectedStrategy.id}`
-                  if (navigator.share) {
-                    await navigator.share({ title: selectedStrategy.name, url })
-                  } else {
-                    await navigator.clipboard.writeText(url)
-                    setShareCopied(true)
-                    setTimeout(() => setShareCopied(false), 2000)
-                  }
-                }}
-                className="w-full mt-4 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white rounded-xl py-3.5 font-semibold text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-              >
-                <span aria-live="polite">{shareCopied ? '已複製連結 ✓' : '分享這個攻略'}</span>
-              </button>
-            </div>
+        {/* Sheet */}
+        <div
+          ref={sheetRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-label="月曆預覽"
+          className={[
+            'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-50 bg-white rounded-t-3xl shadow-2xl',
+            'transition-transform duration-300 ease-out',
+            'max-h-[88vh] flex flex-col focus-visible:outline-none',
+            sheetOpen ? 'translate-y-0' : 'translate-y-full',
+          ].join(' ')}
+        >
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-1 shrink-0">
+            <div className="w-10 h-1 bg-slate-200 rounded-full" />
           </div>
-        </>
-      )}
+
+          {displayStrategy && (
+            <>
+              {/* Sheet header */}
+              <div className="flex items-center justify-between px-5 py-4 shrink-0">
+                <div>
+                  <p className="text-base font-bold text-slate-900 leading-tight">
+                    {displayStrategy.name}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5 tabular-nums">
+                    {displayStrategy.start} → {displayStrategy.end}　·　共 {displayStrategy.totalDays} 天
+                  </p>
+                </div>
+                <button
+                  onClick={handleCloseSheet}
+                  className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                  aria-label="關閉"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Scrollable content */}
+              <div className="overflow-y-auto px-5 pb-6 flex-1">
+                <Calendar
+                  key={displayStrategy.id}
+                  month={displayStrategy.start.slice(0, 7)}
+                  holidayDates={allYearHolidayDates}
+                  leaveDates={displayStrategy.suggestedLeaveDates}
+                  weekendDates={displayStrategy.weekendDates}
+                />
+
+                <button
+                  onClick={async () => {
+                    const url = `${location.origin}${location.pathname}#${displayStrategy.id}`
+                    if (navigator.share) {
+                      await navigator.share({ title: displayStrategy.name, url })
+                    } else {
+                      await navigator.clipboard.writeText(url)
+                      setShareCopied(true)
+                      setTimeout(() => setShareCopied(false), 2000)
+                    }
+                  }}
+                  className="w-full mt-4 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white rounded-xl py-3.5 font-semibold text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                >
+                  <span aria-live="polite">{shareCopied ? '已複製連結 ✓' : '分享這個攻略'}</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </>
 
     </div>
   )
