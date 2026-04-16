@@ -216,7 +216,7 @@ export default function App() {
                   </button>
                   <span
                     aria-label={`目前 ${budget} 天`}
-                    className="text-3xl font-bold text-brand-600 w-9 text-center tabular-nums"
+                    className="text-xl font-bold text-brand-600 w-9 text-center tabular-nums"
                   >
                     {budget}
                   </span>
