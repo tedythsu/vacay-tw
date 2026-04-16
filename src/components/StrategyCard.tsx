@@ -8,15 +8,6 @@ interface Props {
   isBest?: boolean
 }
 
-function cpLabel(cp: number, totalDays: number): { text: string; className: string } {
-  // 極高: must be both efficient AND yield a long vacation (≥7 days)
-  if (cp >= 2.0 && totalDays >= 7) return { text: '極高', className: 'text-emerald-600' }
-  // 高: good efficiency, or long vacation regardless of efficiency
-  if (cp >= 1.5 || totalDays >= 10)  return { text: '高',   className: 'text-brand-600' }
-  if (cp >= 1.0)                     return { text: '中',   className: 'text-slate-600' }
-  return                                    { text: '低',   className: 'text-slate-500' }
-}
-
 export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest }: Props) {
   return (
     <button
@@ -36,7 +27,7 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest 
         isBest ? 'bg-amber-50' : strategy.isFreebie ? 'bg-green-50' : 'bg-white',
       ].join(' ')}
     >
-      {/* Badges — only render when there is something to show */}
+      {/* Badges */}
       {(isBest || strategy.isSuperCombo) && (
         <div className="flex gap-1.5 flex-wrap mb-2">
           {isBest && (
@@ -52,33 +43,22 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest 
         </div>
       )}
 
-      {/* Header row */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          {/* Name + base days context */}
-          <div className="text-sm text-slate-600 truncate">
-            {strategy.name}
-            {!strategy.isFreebie && (
-              <span className="text-slate-500"> · {strategy.baseDays}天連假</span>
-            )}
-          </div>
-          {/* Hero: total rest days (the result of the strategy) */}
-          <div className="text-xl font-bold text-slate-900 leading-tight tabular-nums mt-1">
-            連休 {strategy.totalDays} 天
-          </div>
-          <div className="text-xs text-slate-500 mt-2">
-            {strategy.start.replace(/-/g, '/')} ～ {strategy.end.replace(/-/g, '/')}
-          </div>
+      {/* Name + context */}
+      <div className="text-sm text-slate-600 truncate">
+        {strategy.name}
+        {!strategy.isFreebie && (
+          <span className="text-slate-500"> · {strategy.baseDays}天連假</span>
+        )}
+      </div>
+
+      {/* Hero + date — single flex row, baseline-aligned */}
+      <div className="flex items-baseline justify-between gap-3 mt-1">
+        <div className="text-2xl font-bold text-slate-900 leading-tight tabular-nums">
+          連休 {strategy.totalDays} 天
         </div>
-        {!strategy.isFreebie && (() => {
-          const { text, className } = cpLabel(strategy.cpValue!, strategy.totalDays)
-          return (
-            <div className="text-right shrink-0">
-              <div className={`text-xl font-bold leading-none ${isBest ? 'text-amber-500' : className}`}>{text}</div>
-              <div className="text-xs text-slate-500 mt-0.5 tracking-wide">CP值</div>
-            </div>
-          )
-        })()}
+        <div className="text-xs text-slate-500 tabular-nums shrink-0">
+          {strategy.start.replace(/-/g, '/')} ～ {strategy.end.replace(/-/g, '/')}
+        </div>
       </div>
     </button>
   )

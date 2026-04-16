@@ -47,7 +47,6 @@ export default function App() {
   const [sortBy, setSortBy] = useState<'date' | 'total'>('total')
   const [shareCopied, setShareCopied] = useState(false)
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
-  const [cpFilter, setCpFilter] = useState<'all' | 'mid' | 'high' | 'vhigh'>('all')
   const [yearCalOpen, setYearCalOpen] = useState(false)
 
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -122,7 +121,6 @@ export default function App() {
     setShowFreebies(false)
     setShowUpsells(false)
     setShowUnderBudget(false)
-    setCpFilter('all')
     window.history.replaceState(null, '', location.pathname)
   }
 
@@ -131,7 +129,6 @@ export default function App() {
     setShowAll(false)
     setShowUpsells(false)
     setShowUnderBudget(false)
-    setCpFilter('all')
   }
 
   const DEFAULT_SORT_DIR: Record<typeof sortBy, 'asc' | 'desc'> = {
@@ -148,35 +145,11 @@ export default function App() {
     setShowAll(false)
   }
 
-  function handleCpFilterChange(next: typeof cpFilter) {
-    setCpFilter(next)
-    setShowAll(false)
-  }
-
-  // Mirrors the cpLabel logic in StrategyCard so filter tiers match displayed labels.
-  function matchesCpFilter(s: ReturnType<typeof calculateStrategies>[number]): boolean {
-    const cp = s.cpValue ?? 0
-    switch (cpFilter) {
-      case 'vhigh': return cp >= 2.0 && s.totalDays >= 7
-      case 'high':  return cp >= 1.5 || s.totalDays >= 10
-      case 'mid':   return cp >= 1.0
-      default:      return true
-    }
-  }
-
   // ── Budget filtering & sorting ──────────────────────────────────────────────
   const freebies = strategies.filter(s => s.isFreebie)
-  const exactBudget = strategies.filter(s =>
-    !s.isFreebie && s.leaveDays === budget && matchesCpFilter(s)
-  )
-  const underBudget = strategies.filter(s =>
-    !s.isFreebie && s.leaveDays > 0 && s.leaveDays < budget && matchesCpFilter(s)
-  )
-  const upsells = strategies.filter(s => {
-    if (s.isFreebie || s.leaveDays !== budget + 1) return false
-    const cp = s.cpValue ?? 0
-    return (cp >= 1.5 || s.totalDays >= 10) && matchesCpFilter(s)
-  })
+  const exactBudget = strategies.filter(s => !s.isFreebie && s.leaveDays === budget)
+  const underBudget = strategies.filter(s => !s.isFreebie && s.leaveDays > 0 && s.leaveDays < budget)
+  const upsells = strategies.filter(s => !s.isFreebie && s.leaveDays === budget + 1)
 
   type S = typeof exactBudget[number]
 
@@ -296,33 +269,7 @@ export default function App() {
               +
             </button>
           </div>
-          <span className="text-sm text-slate-600">天</span>
-        </div>
-
-        {/* ── CP Filter Pills ─────────────────────────────────────── */}
-        <div className="mb-2">
-          <div role="group" aria-label="CP值篩選" className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
-            {([
-              { key: 'all',   label: '全部' },
-              { key: 'mid',   label: '中以上' },
-              { key: 'high',  label: '高以上' },
-              { key: 'vhigh', label: '極高' },
-            ] as const).map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => handleCpFilterChange(key)}
-                aria-pressed={cpFilter === key}
-                className={[
-                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
-                  cpFilter === key
-                    ? 'bg-brand-500 text-white'
-                    : 'bg-white border border-slate-200 text-slate-500 hover:border-brand-300 hover:text-brand-600',
-                ].join(' ')}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <span className="text-sm text-slate-600">天假</span>
         </div>
 
         {/* ── Sort Pills ──────────────────────────────────────────── */}
@@ -356,14 +303,6 @@ export default function App() {
         {paidStrategies.length === 0 ? (
           <div className="py-10 text-center">
             <p className="text-sm text-slate-500">沒有符合條件的方案</p>
-            {cpFilter !== 'all' && (
-              <button
-                onClick={() => setCpFilter('all')}
-                className="mt-2 text-xs text-brand-600 hover:text-brand-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded"
-              >
-                清除 CP 值篩選
-              </button>
-            )}
           </div>
         ) : (
           <div className="space-y-3 pb-2">
