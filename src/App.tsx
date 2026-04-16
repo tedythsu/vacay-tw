@@ -36,7 +36,7 @@ export default function App() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set())
+  const [toggledGroups, setToggledGroups] = useState<Set<number>>(new Set())
   const [shareCopied, setShareCopied] = useState(false)
   const [yearCalOpen, setYearCalOpen] = useState(false)
 
@@ -109,18 +109,18 @@ export default function App() {
     setSheetOpen(false)
     setYearCalOpen(false)
     setShowFreebies(false)
-    setCollapsedGroups(new Set())
+    setToggledGroups(new Set())
     window.history.replaceState(null, '', location.pathname)
   }
 
   function handleBudgetChange(delta: number) {
     setBudget(prev => Math.max(MIN_BUDGET, Math.min(MAX_BUDGET, prev + delta)))
     setShowFreebies(false)
-    setCollapsedGroups(new Set())
+    setToggledGroups(new Set())
   }
 
   function toggleGroup(days: number) {
-    setCollapsedGroups(prev => {
+    setToggledGroups(prev => {
       const next = new Set(prev)
       if (next.has(days)) next.delete(days)
       else next.add(days)
@@ -234,7 +234,8 @@ export default function App() {
         ) : (
           <div className="mb-2 space-y-2">
             {groupedPaid.map(([totalDays, group], gi) => {
-              const collapsed = collapsedGroups.has(totalDays)
+              // Best group: open by default, toggled = closed. Others: closed by default, toggled = open.
+              const collapsed = isBestGroup ? toggledGroups.has(totalDays) : !toggledGroups.has(totalDays)
               const isBestGroup = gi === 0
               return (
                 <div
