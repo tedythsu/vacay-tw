@@ -56,17 +56,17 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest 
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           {/* Name + base days context */}
-          <div className="text-sm text-slate-500 truncate">
+          <div className="text-sm text-slate-600 truncate">
             {strategy.name}
             {!strategy.isFreebie && (
-              <span className="text-slate-400"> · {strategy.baseDays}天連假</span>
+              <span className="text-slate-500"> · {strategy.baseDays}天連假</span>
             )}
           </div>
           {/* Hero: total rest days (the result of the strategy) */}
-          <div className="text-lg font-bold text-slate-900 leading-tight tabular-nums">
+          <div className="text-xl font-bold text-slate-900 leading-tight tabular-nums mt-1">
             連休 {strategy.totalDays} 天
           </div>
-          <div className="text-xs text-slate-500 mt-0.5">
+          <div className="text-xs text-slate-500 mt-2">
             {strategy.start.replace(/-/g, '/')} ～ {strategy.end.replace(/-/g, '/')}
           </div>
         </div>
