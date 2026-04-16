@@ -32,7 +32,7 @@ export function MonthRangePicker({ value, onChange }: Props) {
         <div className="absolute w-full h-1 bg-slate-200 rounded-full" />
         {/* Filled range */}
         <div
-          className="absolute h-1 bg-brand-400 rounded-full"
+          className="absolute h-1 bg-brand-200 rounded-full"
           style={{ left: `${leftPct}%`, right: `${100 - rightPct}%` }}
         />
 
@@ -100,7 +100,7 @@ export function MonthRangePicker({ value, onChange }: Props) {
             key={i}
             className={[
               'w-px h-1 rounded-full',
-              i + 1 >= start && i + 1 <= end ? 'bg-brand-300' : 'bg-slate-200',
+              i + 1 >= start && i + 1 <= end ? 'bg-brand-200' : 'bg-slate-200',
             ].join(' ')}
           />
         ))}

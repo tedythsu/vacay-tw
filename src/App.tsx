@@ -226,18 +226,18 @@ export default function App() {
                   className={[
                     'w-full flex items-center justify-center gap-1.5 text-xs py-1 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
                     monthFilterEnabled
-                      ? 'text-brand-600 font-medium'
-                      : 'text-slate-400 hover:text-slate-600',
+                      ? 'text-slate-700 font-medium'
+                      : 'text-slate-500 hover:text-slate-700',
                   ].join(' ')}
                   aria-expanded={monthFilterEnabled}
                 >
                   <span>{monthFilterEnabled ? '月份篩選：' : '＋ 月份篩選'}</span>
                   {monthFilterEnabled && (
-                    <span className="font-semibold tabular-nums">
+                    <span className="font-semibold tabular-nums text-brand-600">
                       {monthRange[0]}月 – {monthRange[1]}月
                     </span>
                   )}
-                  {monthFilterEnabled && <span className="text-slate-300 ml-1">✕</span>}
+                  {monthFilterEnabled && <span className="text-slate-400 ml-1">✕</span>}
                 </button>
                 {monthFilterEnabled && (
                   <div className="mt-2 px-1">
