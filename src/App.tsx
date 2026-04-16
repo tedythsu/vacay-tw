@@ -133,8 +133,14 @@ export default function App() {
     !s.isFreebie && s.leaveDays === budget + 1 && (s.cpValue ?? 0) >= Math.max(1.5, CP_FILTER_MIN[cpFilter])
   )
 
-  const bestCp = withinBudget.length > 0
-    ? Math.max(...withinBudget.map(s => s.cpValue ?? 0))
+  // Adjusted score normalises by *budget* (not leaveDays) so a strategy that
+  // uses fewer days than the budget doesn't unfairly beat one that uses it fully.
+  // adjustedScore = cpValue × leaveDays / budget = (totalDays - baseDays) / budget
+  const adjustedScore = (s: typeof withinBudget[number]) =>
+    (s.cpValue ?? 0) * s.leaveDays / budget
+
+  const bestAdjustedScore = withinBudget.length > 0
+    ? Math.max(...withinBudget.map(adjustedScore))
     : -Infinity
 
   const sortFn = (a: typeof withinBudget[number], b: typeof withinBudget[number]) => {
@@ -299,7 +305,7 @@ export default function App() {
                   strategy={item.strategy}
                   isSelected={selectedStrategy?.id === item.strategy.id}
                   isUpsell={false}
-                  isBest={item.strategy.cpValue === bestCp}
+                  isBest={Math.abs(adjustedScore(item.strategy) - bestAdjustedScore) < 0.001}
                   onSelect={() => handleSelectStrategy(item.strategy)}
                 />
               </div>
