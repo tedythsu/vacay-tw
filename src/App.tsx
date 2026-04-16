@@ -242,7 +242,7 @@ export default function App() {
             <p className="text-sm text-slate-500">沒有符合條件的方案</p>
           </div>
         ) : (
-          <div className="mb-2">
+          <div className="mb-2 space-y-2">
             {groupedPaid.map(([totalDays, group], gi) => {
               const collapsed = collapsedGroups.has(totalDays)
               const isBestGroup = gi === 0
@@ -250,8 +250,10 @@ export default function App() {
                 <div
                   key={totalDays}
                   className={[
-                    gi > 0 ? 'border-t border-slate-100 mt-2' : '',
-                    isBestGroup ? 'rounded-2xl border border-amber-300 bg-amber-50 px-3 pt-1 pb-1 mb-3' : '',
+                    'rounded-2xl border px-3 pt-1 pb-1',
+                    isBestGroup
+                      ? 'border-amber-300 bg-amber-50'
+                      : 'border-slate-100 bg-white',
                   ].join(' ')}
                 >
                   {/* Group header */}
