@@ -187,7 +187,6 @@ export default function App() {
           const yearIndex = confirmedYears.indexOf(selectedYear)
           const prevYear = confirmedYears[yearIndex - 1]
           const nextYear = confirmedYears[yearIndex + 1]
-          const hasPastFiltered = allStrategies.length > strategies.length
           return (
             <div className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 py-4 mb-6 space-y-3">
               {/* Year row */}
@@ -258,12 +257,7 @@ export default function App() {
                 <span className="text-sm text-slate-600">天假</span>
               </div>
 
-              {/* Dynamic note — only when past dates have been filtered */}
-              {hasPastFiltered && (
-                <p className="text-xs text-slate-400 text-center pt-1 border-t border-slate-100">
-                  僅顯示今日起尚未到來的假期
-                </p>
-              )}
+
             </div>
           )
         })()}
