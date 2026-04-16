@@ -351,7 +351,7 @@ export default function App() {
               onClick={() => setShowUnderBudget(prev => !prev)}
               className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 hover:bg-slate-50 transition-colors"
             >
-              <span className="font-medium">少於 {budget} 天的方案（{underBudgetStrategies.length} 個）</span>
+              <span className="font-medium">請假少於 {budget} 天的方案（{underBudgetStrategies.length} 個）</span>
               <span className={['text-slate-400 transition-transform duration-200', showUnderBudget ? 'rotate-180' : ''].join(' ')}>
                 ▾
               </span>
