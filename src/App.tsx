@@ -241,36 +241,38 @@ export default function App() {
           <p className="text-sm text-slate-500 mt-1">台灣請假攻略</p>
         </header>
 
-        {/* ── Year Calendar link ──────────────────────────────────── */}
-        <div className="flex justify-center mb-5 -mt-2">
+        {/* ── Year Tabs + Holiday count row ───────────────────────── */}
+        <div className="border-b border-slate-100 mb-4">
+          {confirmedYears.length > 1 && (
+            <div role="group" aria-label="年份選擇" className="flex border-b border-slate-100">
+              {confirmedYears.map(year => (
+                <button
+                  key={year}
+                  aria-pressed={selectedYear === year}
+                  onClick={() => handleYearChange(year)}
+                  className={[
+                    'flex-1 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset',
+                    selectedYear === year
+                      ? 'text-brand-600 border-b-2 border-brand-600 -mb-[1px]'
+                      : 'text-slate-500 hover:text-slate-700',
+                  ].join(' ')}
+                >
+                  {year}
+                </button>
+              ))}
+            </div>
+          )}
+          {/* Holiday count — tappable info row anchored to the year context */}
           <button
             onClick={() => setYearCalOpen(true)}
-            className="text-xs text-slate-500 hover:text-brand-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded px-2 py-1"
+            className="w-full flex items-center justify-between py-2.5 text-xs text-slate-400 hover:text-brand-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded"
           >
-            {selectedYear} 年國定假日總覽
+            <span>
+              {ALL_HOLIDAYS[String(selectedYear)]?.filter(h => h.type === 'holiday').length ?? 0} 個國定假日
+            </span>
+            <span aria-hidden="true" className="text-slate-300">›</span>
           </button>
         </div>
-
-        {/* ── Year Tabs (only when multiple confirmed years) ───────── */}
-        {confirmedYears.length > 1 && (
-          <div role="group" aria-label="年份選擇" className="flex border-b-2 border-slate-100 mb-4">
-            {confirmedYears.map(year => (
-              <button
-                key={year}
-                aria-pressed={selectedYear === year}
-                onClick={() => handleYearChange(year)}
-                className={[
-                  'flex-1 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset',
-                  selectedYear === year
-                    ? 'text-brand-600 border-b-2 border-brand-600 -mb-[2px]'
-                    : 'text-slate-500 hover:text-slate-700',
-                ].join(' ')}
-              >
-                {year}
-              </button>
-            ))}
-          </div>
-        )}
 
         {/* ── Budget Stepper ──────────────────────────────────────── */}
         <div className="flex items-center justify-center gap-3 bg-white rounded-2xl border border-slate-100 shadow-md px-4 py-4 mb-6">
