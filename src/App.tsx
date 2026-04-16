@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { format } from 'date-fns'
 import { calculateStrategies, getAllHolidayDates } from './engine/strategy'
 import { StrategyCard } from './components/StrategyCard'
@@ -39,6 +39,9 @@ export default function App() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [cpFilter, setCpFilter] = useState<'all' | 'mid' | 'high' | 'vhigh'>('all')
 
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLElement | null>(null)
+
   const allStrategies = calculateStrategies(selectedYear, ALL_HOLIDAYS[String(selectedYear)] ?? [])
   // Only keep strategies whose end date is today or in the future
   const strategies = allStrategies.filter(s => s.end >= today)
@@ -49,6 +52,16 @@ export default function App() {
   useEffect(() => {
     document.body.style.overflow = sheetOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
+  }, [sheetOpen])
+
+  // Focus management: move focus into sheet on open, return to trigger on close
+  useEffect(() => {
+    if (sheetOpen && sheetRef.current) {
+      sheetRef.current.focus()
+    } else if (!sheetOpen && triggerRef.current) {
+      triggerRef.current.focus()
+      triggerRef.current = null
+    }
   }, [sheetOpen])
 
   // Deep-link initialization: read URL hash on mount
@@ -73,6 +86,7 @@ export default function App() {
   }, [])
 
   function handleSelectStrategy(strategy: ReturnType<typeof calculateStrategies>[number]) {
+    triggerRef.current = document.activeElement as HTMLElement
     setSelectedStrategy(strategy)
     setSheetOpen(true)
     window.history.replaceState(null, '', '#' + strategy.id)
@@ -200,12 +214,12 @@ export default function App() {
   })()
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-      <div className="max-w-lg mx-auto px-4">
+    <div className="min-h-screen bg-page font-sans">
+      <div className="max-w-lg mx-auto px-4" inert={sheetOpen || undefined}>
 
         {/* ── Header ─────────────────────────────────────────────── */}
-        <header className="pt-8 pb-4 text-center">
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+        <header className="pt-8 pb-6 text-center">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             vacay.tw
           </h1>
           <p className="text-sm text-slate-500 mt-1">台灣請假攻略</p>
@@ -221,10 +235,10 @@ export default function App() {
                 aria-selected={selectedYear === year}
                 onClick={() => handleYearChange(year)}
                 className={[
-                  'flex-1 py-3 text-sm font-semibold transition-colors',
+                  'flex-1 py-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset',
                   selectedYear === year
-                    ? 'text-sky-500 border-b-2 border-sky-500 -mb-[2px]'
-                    : 'text-slate-400 hover:text-slate-600',
+                    ? 'text-brand-600 border-b-2 border-brand-600 -mb-[2px]'
+                    : 'text-slate-500 hover:text-slate-700',
                 ].join(' ')}
               >
                 {year}
@@ -234,36 +248,35 @@ export default function App() {
         )}
 
         {/* ── Budget Stepper ──────────────────────────────────────── */}
-        <div className="flex items-center justify-center gap-3 bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3 mb-4">
-          <span className="text-sm text-slate-500">我有</span>
+        <div className="flex items-center justify-center gap-3 bg-white rounded-2xl border border-slate-100 shadow-md px-4 py-4 mb-6">
+          <span className="text-sm text-slate-600">我有</span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleBudgetChange(-1)}
               disabled={budget <= MIN_BUDGET}
-              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors"
+              className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
               aria-label="減少請假天數"
             >
               −
             </button>
-            <span className="text-2xl font-extrabold text-sky-500 w-7 text-center tabular-nums">
+            <span className="text-3xl font-bold text-brand-600 w-9 text-center tabular-nums">
               {budget}
             </span>
             <button
               onClick={() => handleBudgetChange(1)}
               disabled={budget >= MAX_BUDGET}
-              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors"
+              className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
               aria-label="增加請假天數"
             >
               +
             </button>
           </div>
-          <span className="text-sm text-slate-500">天假，幫我找最佳方案</span>
+          <span className="text-sm text-slate-600">天假，幫我找最佳方案</span>
         </div>
 
         {/* ── CP Filter Pills ─────────────────────────────────────── */}
-        <div className="mb-3">
-          <p className="text-xs text-slate-400 mb-1.5">CP值篩選</p>
-          <div className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
+        <div className="mb-2">
+          <div role="group" aria-label="CP值篩選" className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
             {([
               { key: 'all',   label: '全部' },
               { key: 'mid',   label: '中以上' },
@@ -273,11 +286,12 @@ export default function App() {
               <button
                 key={key}
                 onClick={() => handleCpFilterChange(key)}
+                aria-pressed={cpFilter === key}
                 className={[
-                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors',
+                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
                   cpFilter === key
-                    ? 'bg-sky-500 text-white'
-                    : 'bg-white border border-slate-200 text-slate-500 hover:border-sky-300 hover:text-sky-500',
+                    ? 'bg-brand-500 text-white'
+                    : 'bg-white border border-slate-200 text-slate-500 hover:border-brand-300 hover:text-brand-600',
                 ].join(' ')}
               >
                 {label}
@@ -287,9 +301,8 @@ export default function App() {
         </div>
 
         {/* ── Sort Pills ──────────────────────────────────────────── */}
-        <div className="mb-3">
-          <p className="text-xs text-slate-400 mb-1.5">排序方式</p>
-          <div className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
+        <div className="mb-5">
+          <div role="group" aria-label="排序方式" className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
             {([
               { key: 'cp',    label: 'CP值' },
               { key: 'date',  label: '日期' },
@@ -299,11 +312,12 @@ export default function App() {
               <button
                 key={key}
                 onClick={() => handleSortChange(key)}
+                aria-pressed={sortBy === key}
                 className={[
-                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors flex items-center gap-1',
+                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
                   sortBy === key
-                    ? 'bg-sky-500 text-white'
-                    : 'bg-white border border-slate-200 text-slate-500 hover:border-sky-300 hover:text-sky-500',
+                    ? 'bg-brand-500 text-white'
+                    : 'bg-white border border-slate-200 text-slate-500 hover:border-brand-300 hover:text-brand-600',
                 ].join(' ')}
               >
                 {label}
@@ -316,120 +330,141 @@ export default function App() {
         </div>
 
         {/* ── Paid Strategy List ──────────────────────────────────── */}
-        <div className="space-y-3 pb-2">
-          {paidItems.map(item =>
-            item.type === 'ad' ? (
-              <AdSlot key={item.key} />
-            ) : (
-              <div key={item.strategy.id} id={item.strategy.id}>
-                <StrategyCard
-                  strategy={item.strategy}
-                  isSelected={selectedStrategy?.id === item.strategy.id}
-                  isUpsell={false}
-                  isBest={bestStrategy !== null && cpCompareFn(item.strategy, bestStrategy) === 0}
-                  onSelect={() => handleSelectStrategy(item.strategy)}
-                />
-              </div>
-            )
-          )}
-        </div>
+        {paidStrategies.length === 0 ? (
+          <div className="py-10 text-center">
+            <p className="text-sm text-slate-500">沒有符合條件的方案</p>
+            {cpFilter !== 'all' && (
+              <button
+                onClick={() => setCpFilter('all')}
+                className="mt-2 text-xs text-brand-600 hover:text-brand-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded"
+              >
+                清除 CP 值篩選
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3 pb-2">
+            {paidItems.map(item =>
+              item.type === 'ad' ? (
+                <AdSlot key={item.key} />
+              ) : (
+                <div key={item.strategy.id} id={item.strategy.id}>
+                  <StrategyCard
+                    strategy={item.strategy}
+                    isSelected={selectedStrategy?.id === item.strategy.id}
+                    isUpsell={false}
+                    isBest={bestStrategy !== null && cpCompareFn(item.strategy, bestStrategy) === 0}
+                    onSelect={() => handleSelectStrategy(item.strategy)}
+                  />
+                </div>
+              )
+            )}
+          </div>
+        )}
 
         {/* Show more button */}
         {!showAll && paidStrategies.length > INITIAL_SHOW && (
           <button
             onClick={() => setShowAll(true)}
-            className="w-full py-3 text-sm text-slate-500 hover:text-sky-500 border border-dashed border-slate-200 rounded-2xl transition-colors mt-1 mb-2"
+            className="w-full py-3 text-sm text-slate-500 hover:text-brand-600 border border-dashed border-slate-200 rounded-2xl transition-colors mt-1 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
           >
             顯示全部 {paidStrategies.length} 個方案 ↓
           </button>
         )}
 
-        {/* ── Under-budget (collapsible) ──────────────────────────── */}
-        {underBudgetStrategies.length > 0 && (
-          <div className="mt-2 mb-2">
-            <button
-              onClick={() => setShowUnderBudget(prev => !prev)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 hover:bg-slate-50 transition-colors"
-            >
-              <span className="font-medium">請假少於 {budget} 天的方案（{underBudgetStrategies.length} 個）</span>
-              <span className={['text-slate-400 transition-transform duration-200', showUnderBudget ? 'rotate-180' : ''].join(' ')}>
-                ▾
-              </span>
-            </button>
-            {showUnderBudget && (
-              <div className="space-y-3 mt-2">
-                {underBudgetStrategies.map(s => (
-                  <div key={s.id} id={s.id}>
-                    <StrategyCard
-                      strategy={s}
-                      isSelected={selectedStrategy?.id === s.id}
-                      isUpsell={false}
-                      isBest={false}
-                      onSelect={() => handleSelectStrategy(s)}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {/* ── Secondary sections (collapsed by default) ───────────── */}
+        {(underBudgetStrategies.length > 0 || upsellStrategies.length > 0 || freebies.length > 0) && (
+          <div className="mt-6 space-y-2">
 
-        {/* ── Upsells (collapsible) ────────────────────────────────── */}
-        {upsellStrategies.length > 0 && (
-          <div className="mt-2 mb-2">
-            <button
-              onClick={() => setShowUpsells(prev => !prev)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-white border border-dashed border-orange-200 rounded-2xl text-sm text-slate-600 hover:bg-orange-50 transition-colors"
-            >
-              <span className="font-medium">建議加碼（{upsellStrategies.length} 個）</span>
-              <span className={['text-slate-400 transition-transform duration-200', showUpsells ? 'rotate-180' : ''].join(' ')}>
-                ▾
-              </span>
-            </button>
-            {showUpsells && (
-              <div className="space-y-3 mt-2">
-                {upsellStrategies.map(s => (
-                  <div key={s.id} id={s.id}>
-                    <StrategyCard
-                      strategy={s}
-                      isSelected={selectedStrategy?.id === s.id}
-                      isUpsell={true}
-                      isBest={false}
-                      onSelect={() => handleSelectStrategy(s)}
-                    />
+            {/* Under-budget */}
+            {underBudgetStrategies.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setShowUnderBudget(prev => !prev)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                >
+                  <span className="font-medium">請假少於 {budget} 天的方案（{underBudgetStrategies.length} 個）</span>
+                  <span aria-hidden="true" className={['text-slate-400 transition-transform duration-200', showUnderBudget ? 'rotate-180' : ''].join(' ')}>
+                    ▾
+                  </span>
+                </button>
+                {showUnderBudget && (
+                  <div className="space-y-3 mt-2">
+                    {underBudgetStrategies.map(s => (
+                      <div key={s.id} id={s.id}>
+                        <StrategyCard
+                          strategy={s}
+                          isSelected={selectedStrategy?.id === s.id}
+                          isUpsell={false}
+                          isBest={false}
+                          onSelect={() => handleSelectStrategy(s)}
+                        />
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             )}
-          </div>
-        )}
 
-        {/* ── Freebies (collapsible) ───────────────────────────────── */}
-        {freebies.length > 0 && (
-          <div className="mt-2 mb-2">
-            <button
-              onClick={() => setShowFreebies(prev => !prev)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 hover:bg-slate-50 transition-colors"
-            >
-              <span className="font-medium">免請假連假（{freebies.length} 個）</span>
-              <span className={['text-slate-400 transition-transform duration-200', showFreebies ? 'rotate-180' : ''].join(' ')}>
-                ▾
-              </span>
-            </button>
-            {showFreebies && (
-              <div className="space-y-3 mt-2">
-                {freebies.map(s => (
-                  <div key={s.id} id={s.id}>
-                    <StrategyCard
-                      strategy={s}
-                      isSelected={selectedStrategy?.id === s.id}
-                      isUpsell={false}
-                      onSelect={() => handleSelectStrategy(s)}
-                    />
+            {/* Upsells */}
+            {upsellStrategies.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setShowUpsells(prev => !prev)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-white border border-dashed border-orange-200 rounded-2xl text-sm text-slate-600 hover:bg-orange-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                >
+                  <span className="font-medium">建議加碼（{upsellStrategies.length} 個）</span>
+                  <span aria-hidden="true" className={['text-slate-400 transition-transform duration-200', showUpsells ? 'rotate-180' : ''].join(' ')}>
+                    ▾
+                  </span>
+                </button>
+                {showUpsells && (
+                  <div className="space-y-3 mt-2">
+                    {upsellStrategies.map(s => (
+                      <div key={s.id} id={s.id}>
+                        <StrategyCard
+                          strategy={s}
+                          isSelected={selectedStrategy?.id === s.id}
+                          isUpsell={true}
+                          isBest={false}
+                          onSelect={() => handleSelectStrategy(s)}
+                        />
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             )}
+
+            {/* Freebies */}
+            {freebies.length > 0 && (
+              <div>
+                <button
+                  onClick={() => setShowFreebies(prev => !prev)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                >
+                  <span className="font-medium">免請假連假（{freebies.length} 個）</span>
+                  <span aria-hidden="true" className={['text-slate-400 transition-transform duration-200', showFreebies ? 'rotate-180' : ''].join(' ')}>
+                    ▾
+                  </span>
+                </button>
+                {showFreebies && (
+                  <div className="space-y-3 mt-2">
+                    {freebies.map(s => (
+                      <div key={s.id} id={s.id}>
+                        <StrategyCard
+                          strategy={s}
+                          isSelected={selectedStrategy?.id === s.id}
+                          isUpsell={false}
+                          onSelect={() => handleSelectStrategy(s)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
           </div>
         )}
 
@@ -438,7 +473,7 @@ export default function App() {
           <p className="text-xs text-slate-400">
             正式請假請依行政院人事行政總處公告為準。
           </p>
-          <p className="text-xs text-slate-300">© {new Date().getFullYear()} vacay.tw</p>
+          <p className="text-xs text-slate-300">© {confirmedYears[confirmedYears.length - 1]} vacay.tw</p>
         </footer>
       </div>
 
@@ -457,6 +492,8 @@ export default function App() {
 
           {/* Sheet */}
           <div
+            ref={sheetRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-label="月曆預覽"
@@ -473,19 +510,19 @@ export default function App() {
             </div>
 
             {/* Sheet header */}
-            <div className="flex items-center justify-between px-5 py-3 shrink-0">
+            <div className="flex items-center justify-between px-5 py-4 shrink-0">
               <div>
                 <p className="text-base font-bold text-slate-900 leading-tight">
                   {selectedStrategy.name}
                 </p>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5 tabular-nums">
                   {selectedStrategy.start} → {selectedStrategy.end}
                   　·　共 {selectedStrategy.totalDays} 天
                 </p>
               </div>
               <button
                 onClick={handleCloseSheet}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-lg leading-none transition-colors"
+                className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 aria-label="關閉"
               >
                 ×
@@ -513,9 +550,9 @@ export default function App() {
                     setTimeout(() => setShareCopied(false), 2000)
                   }
                 }}
-                className="w-full mt-4 bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white rounded-xl py-3.5 font-semibold text-sm transition-colors"
+                className="w-full mt-4 bg-brand-500 hover:bg-brand-600 active:bg-brand-700 text-white rounded-xl py-3.5 font-semibold text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
               >
-                {shareCopied ? '已複製連結 ✓' : '分享這個攻略'}
+                <span aria-live="polite">{shareCopied ? '已複製連結 ✓' : '分享這個攻略'}</span>
               </button>
             </div>
           </div>

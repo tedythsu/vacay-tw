@@ -2,5 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Brand: deep teal-blue — deliberately not sky-500 */
+  --brand-50:  oklch(97%   0.015 190);
+  --brand-100: oklch(91%   0.04  190);
+  --brand-200: oklch(83%   0.08  190);
+  --brand-300: oklch(73%   0.11  190);
+  --brand-400: oklch(63%   0.13  190);
+  --brand-500: oklch(49%   0.13  190);  /* button bg — white text ~5.2:1 */
+  --brand-600: oklch(43%   0.115 190);  /* text on white — ~7:1 AAA */
+  --brand-700: oklch(37%   0.095 190);  /* pressed / active */
+
+  /* Page surface: brand-hue tinted neutral, away from pure slate-50 */
+  --page-bg: oklch(97.5% 0.008 190);
+}
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

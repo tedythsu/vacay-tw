@@ -39,7 +39,7 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
   const days = eachDayOfInterval({ start: calStart, end: calEnd })
 
   function dayClasses(dateStr: string, inMonth: boolean): string {
-    const base = 'text-center text-xs py-1.5 rounded-lg transition-colors'
+    const base = 'text-center text-xs py-1.5 rounded-lg transition-colors tabular-nums'
     if (!inMonth) return `${base} text-slate-200`
     if (holidaySet.has(dateStr)) return `${base} bg-red-100 text-red-600 font-bold`
     if (leaveSet.has(dateStr)) return `${base} bg-yellow-100 text-yellow-700 font-bold`
@@ -54,17 +54,17 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
       <div className="flex items-center justify-between mb-3">
         <button
           onClick={() => setCurrent(prev => subMonths(prev, 1))}
-          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 text-lg"
+          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 text-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1"
           aria-label="上個月"
         >
           ‹
         </button>
-        <span className="text-sm font-bold text-slate-900">
+        <span className="text-sm font-bold text-slate-900 tabular-nums">
           {format(current, 'yyyy 年 M 月')}
         </span>
         <button
           onClick={() => setCurrent(prev => addMonths(prev, 1))}
-          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 text-lg"
+          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 text-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1"
           aria-label="下個月"
         >
           ›
