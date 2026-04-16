@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { format } from 'date-fns'
 import { calculateStrategies, getAllHolidayDates } from './engine/strategy'
 import { StrategyCard } from './components/StrategyCard'
@@ -26,6 +26,15 @@ const MAX_BUDGET = 30
 
 const today = format(new Date(), 'yyyy-MM-dd')
 
+// Pre-compute all years at module init — data is static, no reason to recompute on interaction.
+// Year-tab switching becomes an O(1) Map lookup instead of a 300ms blocking calculation.
+const ALL_STRATEGIES = new Map(
+  confirmedYears.map(y => [y, calculateStrategies(y, ALL_HOLIDAYS[String(y)] ?? [])])
+)
+const ALL_HOLIDAY_DATES = new Map(
+  confirmedYears.map(y => [y, getAllHolidayDates(ALL_HOLIDAYS[String(y)] ?? [])])
+)
+
 export default function App() {
   const [selectedYear, setSelectedYear] = useState<number>(confirmedYears[0])
   const [selectedStrategy, setSelectedStrategy] = useState<ReturnType<typeof calculateStrategies>[number] | null>(null)
@@ -44,17 +53,11 @@ export default function App() {
   const sheetRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
 
-  const allStrategies = useMemo(
-    () => calculateStrategies(selectedYear, ALL_HOLIDAYS[String(selectedYear)] ?? []),
-    [selectedYear]
-  )
+  const allStrategies = ALL_STRATEGIES.get(selectedYear) ?? []
   // Only keep strategies whose end date is today or in the future
-  const strategies = useMemo(() => allStrategies.filter(s => s.end >= today), [allStrategies])
+  const strategies = allStrategies.filter(s => s.end >= today)
 
-  const allYearHolidayDates = useMemo(
-    () => getAllHolidayDates(ALL_HOLIDAYS[String(selectedYear)] ?? []),
-    [selectedYear]
-  )
+  const allYearHolidayDates = ALL_HOLIDAY_DATES.get(selectedYear) ?? []
 
   // Lock body scroll when sheet is open
   useEffect(() => {
