@@ -119,7 +119,7 @@ export default function App() {
 
   function handleBudgetChange(delta: number) {
     setBudget(prev => Math.max(MIN_BUDGET, Math.min(MAX_BUDGET, prev + delta)))
-    setShowAll(false)
+    setShowFreebies(false)
     setShowUpsells(false)
     setShowUnderBudget(false)
     setCollapsedGroups(new Set())
@@ -149,9 +149,6 @@ export default function App() {
   const paidStrategies = [...exactBudget].sort(compareFn)
   const underBudgetStrategies = [...underBudget].sort(compareFn)
   const upsellStrategies = [...upsells].sort(compareFn)
-
-  // Best: most total rest days
-  const bestStrategy = paidStrategies[0] ?? null
 
   // Group paid strategies by totalDays (desc)
   const groupedPaid: [number, S[]][] = []
@@ -248,17 +245,29 @@ export default function App() {
           <div className="mb-2">
             {groupedPaid.map(([totalDays, group], gi) => {
               const collapsed = collapsedGroups.has(totalDays)
+              const isBestGroup = gi === 0
               return (
-                <div key={totalDays} className={gi > 0 ? 'border-t border-slate-100 mt-2' : ''}>
+                <div
+                  key={totalDays}
+                  className={[
+                    gi > 0 ? 'border-t border-slate-100 mt-2' : '',
+                    isBestGroup ? 'rounded-2xl border border-amber-300 bg-amber-50 px-3 pt-1 pb-1 mb-3' : '',
+                  ].join(' ')}
+                >
                   {/* Group header */}
                   <button
                     onClick={() => toggleGroup(totalDays)}
                     aria-expanded={!collapsed}
                     className="w-full flex items-center justify-between py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded-lg"
                   >
-                    <div className="flex items-baseline gap-1">
+                    <div className="flex items-baseline gap-1.5">
+                      {isBestGroup && (
+                        <span className="text-xs bg-amber-400 text-white px-2 py-0.5 rounded-full font-semibold mr-1">
+                          ★ 最佳
+                        </span>
+                      )}
                       <span className="text-xs text-slate-500">連休</span>
-                      <span className="text-xl font-bold text-slate-800 tabular-nums leading-none">{totalDays}</span>
+                      <span className={['tabular-nums leading-none', isBestGroup ? 'text-xl font-bold text-amber-700' : 'text-xl font-bold text-slate-800'].join(' ')}>{totalDays}</span>
                       <span className="text-xs text-slate-500">天</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -274,14 +283,13 @@ export default function App() {
 
                   {/* Cards */}
                   {!collapsed && (
-                    <div className="space-y-3 pb-4">
+                    <div className="space-y-3 pb-3">
                       {group.map(s => (
                         <div key={s.id} id={s.id}>
                           <StrategyCard
                             strategy={s}
                             isSelected={selectedStrategy?.id === s.id}
                             isUpsell={false}
-                            isBest={bestStrategy !== null && s.id === bestStrategy.id}
                             onSelect={() => handleSelectStrategy(s)}
                           />
                         </div>
@@ -319,7 +327,7 @@ export default function App() {
                           strategy={s}
                           isSelected={selectedStrategy?.id === s.id}
                           isUpsell={false}
-                          isBest={false}
+                          showTotalDays
                           onSelect={() => handleSelectStrategy(s)}
                         />
                       </div>
@@ -350,7 +358,7 @@ export default function App() {
                           strategy={s}
                           isSelected={selectedStrategy?.id === s.id}
                           isUpsell={true}
-                          isBest={false}
+                          showTotalDays
                           onSelect={() => handleSelectStrategy(s)}
                         />
                       </div>
@@ -381,6 +389,7 @@ export default function App() {
                           strategy={s}
                           isSelected={selectedStrategy?.id === s.id}
                           isUpsell={false}
+                          showTotalDays
                           onSelect={() => handleSelectStrategy(s)}
                         />
                       </div>

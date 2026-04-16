@@ -5,10 +5,10 @@ interface Props {
   isSelected: boolean
   onSelect: () => void
   isUpsell?: boolean
-  isBest?: boolean
+  showTotalDays?: boolean   // for upsell/under-budget/freebie cards rendered outside grouped list
 }
 
-export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest }: Props) {
+export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, showTotalDays }: Props) {
   return (
     <button
       type="button"
@@ -19,46 +19,40 @@ export function StrategyCard({ strategy, isSelected, onSelect, isUpsell, isBest 
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
         isSelected
           ? 'border-2 border-brand-500 shadow-md shadow-brand-100'
-          : isBest
-            ? 'border-2 border-amber-400 shadow-md shadow-amber-100'
-            : isUpsell
-              ? 'border border-dashed border-orange-200 shadow-sm'
-              : 'border border-slate-200 shadow-sm',
-        isBest ? 'bg-amber-50' : strategy.isFreebie ? 'bg-green-50' : 'bg-white',
+          : isUpsell
+            ? 'border border-dashed border-orange-200 shadow-sm'
+            : 'border border-slate-200 shadow-sm',
+        strategy.isFreebie ? 'bg-green-50' : 'bg-white',
       ].join(' ')}
     >
       {/* Badges */}
-      {(isBest || strategy.isSuperCombo) && (
+      {strategy.isSuperCombo && (
         <div className="flex gap-1.5 flex-wrap mb-2">
-          {isBest && (
-            <span className="text-xs bg-amber-400 text-white px-2 py-0.5 rounded-full font-semibold">
-              ★ 最佳方案
-            </span>
-          )}
-          {strategy.isSuperCombo && (
-            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
-              大禮包
-            </span>
-          )}
+          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+            大禮包
+          </span>
         </div>
       )}
 
-      {/* Name + context */}
-      <div className="text-sm text-slate-600 truncate">
+      {/* Name */}
+      <div className="text-sm font-medium text-slate-800 truncate">
         {strategy.name}
-        {!strategy.isFreebie && (
-          <span className="text-slate-500"> · {strategy.baseDays}天連假</span>
-        )}
       </div>
 
-      {/* Hero + date — single flex row, baseline-aligned */}
+      {/* Date range + leave cost (or totalDays for standalone cards) */}
       <div className="flex items-baseline justify-between gap-3 mt-1">
-        <div className="text-2xl font-bold text-slate-900 leading-tight tabular-nums">
-          連休 {strategy.totalDays} 天
-        </div>
-        <div className="text-xs text-slate-500 tabular-nums shrink-0">
+        <div className="text-xs text-slate-500 tabular-nums">
           {strategy.start.replace(/-/g, '/')} ～ {strategy.end.replace(/-/g, '/')}
         </div>
+        {showTotalDays ? (
+          <div className="text-sm font-bold text-slate-700 tabular-nums shrink-0">
+            連休 {strategy.totalDays} 天
+          </div>
+        ) : !strategy.isFreebie ? (
+          <div className="text-xs text-slate-500 shrink-0">
+            請 {strategy.leaveDays} 天
+          </div>
+        ) : null}
       </div>
     </button>
   )
