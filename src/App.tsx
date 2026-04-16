@@ -32,6 +32,7 @@ export default function App() {
   const [showAll, setShowAll] = useState(false)
   const [showFreebies, setShowFreebies] = useState(false)
   const [showUpsells, setShowUpsells] = useState(false)
+  const [showUnderBudget, setShowUnderBudget] = useState(false)
   const [budget, setBudget] = useState(3)
   const [sortBy, setSortBy] = useState<'cp' | 'date' | 'leave' | 'total'>('cp')
   const [shareCopied, setShareCopied] = useState(false)
@@ -90,6 +91,7 @@ export default function App() {
     setShowAll(false)
     setShowFreebies(false)
     setShowUpsells(false)
+    setShowUnderBudget(false)
     setCpFilter('all')
     window.history.replaceState(null, '', location.pathname)
   }
@@ -98,6 +100,7 @@ export default function App() {
     setBudget(prev => Math.max(MIN_BUDGET, Math.min(MAX_BUDGET, prev + delta)))
     setShowAll(false)
     setShowUpsells(false)
+    setShowUnderBudget(false)
     setCpFilter('all')
   }
 
@@ -133,8 +136,11 @@ export default function App() {
 
   // ── Budget filtering & sorting ──────────────────────────────────────────────
   const freebies = strategies.filter(s => s.isFreebie)
-  const withinBudget = strategies.filter(s =>
-    !s.isFreebie && s.leaveDays <= budget && matchesCpFilter(s)
+  const exactBudget = strategies.filter(s =>
+    !s.isFreebie && s.leaveDays === budget && matchesCpFilter(s)
+  )
+  const underBudget = strategies.filter(s =>
+    !s.isFreebie && s.leaveDays > 0 && s.leaveDays < budget && matchesCpFilter(s)
   )
   const upsells = strategies.filter(s => {
     if (s.isFreebie || s.leaveDays !== budget + 1) return false
@@ -142,27 +148,22 @@ export default function App() {
     return (cp >= 1.5 || s.totalDays >= 10) && matchesCpFilter(s)
   })
 
-  // Adjusted score normalises by *budget* so strategies that use fewer leave
-  // days than the budget don't unfairly beat ones that fully use it.
-  // adjustedScore = cpValue × leaveDays / budget = (totalDays - baseDays) / budget
-  const adjustedScore = (s: typeof withinBudget[number]) =>
-    (s.cpValue ?? 0) * s.leaveDays / budget
+  type S = typeof exactBudget[number]
 
-  // Three-level comparator: adjustedScore → cpValue → totalDays (all descending)
-  const cpCompareFn = (a: typeof withinBudget[number], b: typeof withinBudget[number]): number => {
-    const adjDiff = adjustedScore(a) - adjustedScore(b)
-    if (Math.abs(adjDiff) > 0.0001) return adjDiff
+  // Three-level comparator: cpValue → totalDays (all descending)
+  // For exactBudget leaveDays === budget, so adjustedScore = cpValue — no normalisation needed.
+  const cpCompareFn = (a: S, b: S): number => {
     const cpDiff = (a.cpValue ?? 0) - (b.cpValue ?? 0)
     if (Math.abs(cpDiff) > 0.0001) return cpDiff
     return a.totalDays - b.totalDays
   }
 
-  // Best strategy: highest by three-level comparator
-  const bestStrategy = withinBudget.length > 0
-    ? withinBudget.reduce((best, s) => cpCompareFn(s, best) > 0 ? s : best)
+  // Best strategy: scoped to exactBudget (user asked for N days, badge on best N-day option)
+  const bestStrategy = exactBudget.length > 0
+    ? exactBudget.reduce((best, s) => cpCompareFn(s, best) > 0 ? s : best)
     : null
 
-  const sortFn = (a: typeof withinBudget[number], b: typeof withinBudget[number]) => {
+  const sortFn = (a: S, b: S) => {
     const dir = sortDir === 'asc' ? 1 : -1
     switch (sortBy) {
       case 'date':  return dir * a.start.localeCompare(b.start)
@@ -173,7 +174,8 @@ export default function App() {
     }
   }
 
-  const paidStrategies = [...withinBudget].sort(sortFn)
+  const paidStrategies = [...exactBudget].sort(sortFn)
+  const underBudgetStrategies = [...underBudget].sort(sortFn)
   const upsellStrategies = [...upsells].sort(sortFn)
 
   const INITIAL_SHOW = 5
@@ -340,6 +342,36 @@ export default function App() {
           >
             顯示全部 {paidStrategies.length} 個方案 ↓
           </button>
+        )}
+
+        {/* ── Under-budget (collapsible) ──────────────────────────── */}
+        {underBudgetStrategies.length > 0 && (
+          <div className="mt-2 mb-2">
+            <button
+              onClick={() => setShowUnderBudget(prev => !prev)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+            >
+              <span className="font-medium">少於 {budget} 天的方案（{underBudgetStrategies.length} 個）</span>
+              <span className={['text-slate-400 transition-transform duration-200', showUnderBudget ? 'rotate-180' : ''].join(' ')}>
+                ▾
+              </span>
+            </button>
+            {showUnderBudget && (
+              <div className="space-y-3 mt-2">
+                {underBudgetStrategies.map(s => (
+                  <div key={s.id} id={s.id}>
+                    <StrategyCard
+                      strategy={s}
+                      isSelected={selectedStrategy?.id === s.id}
+                      isUpsell={false}
+                      isBest={false}
+                      onSelect={() => handleSelectStrategy(s)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {/* ── Upsells (collapsible) ────────────────────────────────── */}
