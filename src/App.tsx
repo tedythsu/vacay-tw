@@ -254,16 +254,16 @@ export default function App() {
                     className="w-full flex items-center justify-between py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded-lg"
                   >
                     <div className="flex items-baseline gap-1.5">
-                      {isBestGroup && (
-                        <span className="text-xs bg-amber-400 text-white px-2 py-0.5 rounded-full font-semibold mr-1">
-                          ★ 最佳
-                        </span>
-                      )}
                       <span className="text-xs text-slate-500">連休</span>
                       <span className={['tabular-nums leading-none', isBestGroup ? 'text-xl font-bold text-amber-700' : 'text-xl font-bold text-slate-800'].join(' ')}>{totalDays}</span>
                       <span className="text-xs text-slate-500">天</span>
                     </div>
                     <div className="flex items-center gap-2">
+                      {isBestGroup && (
+                        <span className="text-xs bg-amber-400 text-white px-2 py-0.5 rounded-full font-semibold">
+                          ★ 最佳
+                        </span>
+                      )}
                       <span className="text-xs text-slate-400">{group.length} 個方案</span>
                       <span
                         aria-hidden="true"
