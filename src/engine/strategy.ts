@@ -252,9 +252,10 @@ export function calculateStrategies(year: number, holidays: HolidayEntry[]): Str
     const freebie = buildStrategy(holiday, baseStart, baseEnd, allHolidayDates, makeupDates, year, false, baseDays)
     if (freebie) strategies.push(freebie)
 
-    // Enumerate leave extensions: front 0-3 days, back 0-3 days, total ≤ 5
-    for (let front = 0; front <= 3; front++) {
-      for (let back = 0; back <= 3; back++) {
+    // Enumerate leave extensions: front 0-4 days, back 0-4 days, total ≤ 5
+    // Upper bound is 4 (not 3) so a 4-day run can reach the next weekend boundary.
+    for (let front = 0; front <= 4; front++) {
+      for (let back = 0; back <= 4; back++) {
         if (front === 0 && back === 0) continue // freebie already handled
         if (front + back > 5) continue
 
