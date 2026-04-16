@@ -21,7 +21,7 @@ function yearOfStrategyId(id: string): number | null {
 }
 
 const MIN_BUDGET = 1
-const MAX_BUDGET = 7
+const MAX_BUDGET = 30
 
 const today = format(new Date(), 'yyyy-MM-dd')
 
@@ -265,7 +265,7 @@ export default function App() {
               −
             </button>
             <span
-              aria-label={`目前 ${budget} 天，最少 ${MIN_BUDGET} 天，最多 ${MAX_BUDGET} 天`}
+              aria-label={`目前 ${budget} 天`}
               className="text-3xl font-bold text-brand-600 w-9 text-center tabular-nums"
             >
               {budget}
