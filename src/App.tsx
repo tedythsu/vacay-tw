@@ -4,13 +4,8 @@ import { calculateStrategies, getAllHolidayDates } from './engine/strategy'
 import { StrategyCard } from './components/StrategyCard'
 import { Calendar } from './components/Calendar'
 import { YearCalendarSheet } from './components/YearCalendarSheet'
-import { AdSlot } from './components/AdSlot'
 import type { HolidayEntry } from './engine/strategy'
 import holidaysData from './data/holidays.json'
-
-type ListItem =
-  | { type: 'strategy'; strategy: ReturnType<typeof calculateStrategies>[number] }
-  | { type: 'ad'; key: string }
 
 const ALL_HOLIDAYS = holidaysData as Record<string, HolidayEntry[]>
 const confirmedYears = Object.keys(ALL_HOLIDAYS).map(Number).sort()
@@ -39,14 +34,12 @@ export default function App() {
   const [selectedYear, setSelectedYear] = useState<number>(confirmedYears[0])
   const [selectedStrategy, setSelectedStrategy] = useState<ReturnType<typeof calculateStrategies>[number] | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [showAll, setShowAll] = useState(false)
   const [showFreebies, setShowFreebies] = useState(false)
   const [showUpsells, setShowUpsells] = useState(false)
   const [showUnderBudget, setShowUnderBudget] = useState(false)
   const [budget, setBudget] = useState(3)
-  const [sortBy, setSortBy] = useState<'date' | 'total'>('total')
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set())
   const [shareCopied, setShareCopied] = useState(false)
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [yearCalOpen, setYearCalOpen] = useState(false)
 
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -117,10 +110,10 @@ export default function App() {
     setSelectedStrategy(null)
     setSheetOpen(false)
     setYearCalOpen(false)
-    setShowAll(false)
     setShowFreebies(false)
     setShowUpsells(false)
     setShowUnderBudget(false)
+    setCollapsedGroups(new Set())
     window.history.replaceState(null, '', location.pathname)
   }
 
@@ -129,23 +122,19 @@ export default function App() {
     setShowAll(false)
     setShowUpsells(false)
     setShowUnderBudget(false)
+    setCollapsedGroups(new Set())
   }
 
-  const DEFAULT_SORT_DIR: Record<typeof sortBy, 'asc' | 'desc'> = {
-    date: 'asc', total: 'desc',
+  function toggleGroup(days: number) {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(days)) next.delete(days)
+      else next.add(days)
+      return next
+    })
   }
 
-  function handleSortChange(next: typeof sortBy) {
-    if (next === sortBy) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortBy(next)
-      setSortDir(DEFAULT_SORT_DIR[next])
-    }
-    setShowAll(false)
-  }
-
-  // ── Budget filtering & sorting ──────────────────────────────────────────────
+  // ── Budget filtering ────────────────────────────────────────────────────────
   const freebies = strategies.filter(s => s.isFreebie)
   const exactBudget = strategies.filter(s => !s.isFreebie && s.leaveDays === budget)
   const underBudget = strategies.filter(s => !s.isFreebie && s.leaveDays > 0 && s.leaveDays < budget)
@@ -153,51 +142,29 @@ export default function App() {
 
   type S = typeof exactBudget[number]
 
-  // With fixed budget, rank by total rest days; use earliest start as tiebreaker.
-  const totalCompareFn = (a: S, b: S): number => {
-    const diff = a.totalDays - b.totalDays
-    if (diff !== 0) return diff
-    return b.start.localeCompare(a.start) // earlier date wins on tie
-  }
+  // Sort: most days first, then earliest date as tiebreaker
+  const compareFn = (a: S, b: S) =>
+    b.totalDays - a.totalDays || a.start.localeCompare(b.start)
 
-  // Best strategy: most total rest days within the exact budget
-  const bestStrategy = exactBudget.length > 0
-    ? exactBudget.reduce((best, s) => totalCompareFn(s, best) > 0 ? s : best)
-    : null
+  const paidStrategies = [...exactBudget].sort(compareFn)
+  const underBudgetStrategies = [...underBudget].sort(compareFn)
+  const upsellStrategies = [...upsells].sort(compareFn)
 
-  const sortFn = (a: S, b: S) => {
-    const dir = sortDir === 'asc' ? 1 : -1
-    switch (sortBy) {
-      case 'date':  return dir * a.start.localeCompare(b.start)
-      case 'total':
-      default:      return dir * totalCompareFn(a, b)
+  // Best: most total rest days
+  const bestStrategy = paidStrategies[0] ?? null
+
+  // Group paid strategies by totalDays (desc)
+  const groupedPaid: [number, S[]][] = []
+  {
+    const map = new Map<number, S[]>()
+    for (const s of paidStrategies) {
+      if (!map.has(s.totalDays)) map.set(s.totalDays, [])
+      map.get(s.totalDays)!.push(s)
+    }
+    for (const entry of [...map.entries()].sort((a, b) => b[0] - a[0])) {
+      groupedPaid.push(entry)
     }
   }
-
-  const paidStrategies = [...exactBudget].sort(sortFn)
-  const underBudgetStrategies = [...underBudget].sort(sortFn)
-  const upsellStrategies = [...upsells].sort(sortFn)
-
-  const INITIAL_SHOW = 5
-
-  const allPaidItems: ListItem[] = []
-  paidStrategies.forEach((s, i) => {
-    allPaidItems.push({ type: 'strategy', strategy: s })
-    if (i === 0 || i === 2) {
-      allPaidItems.push({ type: 'ad', key: `ad-${i}` })
-    }
-  })
-
-  const paidItems: ListItem[] = showAll ? allPaidItems : (() => {
-    const result: ListItem[] = []
-    let count = 0
-    for (const item of allPaidItems) {
-      if (count >= INITIAL_SHOW) break
-      result.push(item)
-      if (item.type === 'strategy') count++
-    }
-    return result
-  })()
 
   return (
     <div className="min-h-screen bg-page font-sans">
@@ -272,66 +239,59 @@ export default function App() {
           <span className="text-sm text-slate-600">天假</span>
         </div>
 
-        {/* ── Sort Pills ──────────────────────────────────────────── */}
-        <div className="mb-5">
-          <div role="group" aria-label="排序方式" className="flex gap-2 overflow-x-auto pb-0.5 no-scrollbar">
-            {([
-              { key: 'total', label: '連休天數' },
-              { key: 'date',  label: '日期' },
-            ] as const).map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => handleSortChange(key)}
-                aria-pressed={sortBy === key}
-                className={[
-                  'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
-                  sortBy === key
-                    ? 'bg-brand-500 text-white'
-                    : 'bg-white border border-slate-200 text-slate-500 hover:border-brand-300 hover:text-brand-600',
-                ].join(' ')}
-              >
-                {label}
-                {sortBy === key && (
-                  <span className="text-[10px] leading-none" aria-hidden="true">{sortDir === 'asc' ? '↑' : '↓'}</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Paid Strategy List ──────────────────────────────────── */}
+        {/* ── Paid Strategy List (grouped by 連休天數) ────────────── */}
         {paidStrategies.length === 0 ? (
           <div className="py-10 text-center">
             <p className="text-sm text-slate-500">沒有符合條件的方案</p>
           </div>
         ) : (
-          <div className="space-y-3 pb-2">
-            {paidItems.map(item =>
-              item.type === 'ad' ? (
-                <AdSlot key={item.key} />
-              ) : (
-                <div key={item.strategy.id} id={item.strategy.id}>
-                  <StrategyCard
-                    strategy={item.strategy}
-                    isSelected={selectedStrategy?.id === item.strategy.id}
-                    isUpsell={false}
-                    isBest={bestStrategy !== null && totalCompareFn(item.strategy, bestStrategy) === 0}
-                    onSelect={() => handleSelectStrategy(item.strategy)}
-                  />
+          <div className="mb-2">
+            {groupedPaid.map(([totalDays, group], gi) => {
+              const collapsed = collapsedGroups.has(totalDays)
+              return (
+                <div key={totalDays} className={gi > 0 ? 'border-t border-slate-100 mt-2' : ''}>
+                  {/* Group header */}
+                  <button
+                    onClick={() => toggleGroup(totalDays)}
+                    aria-expanded={!collapsed}
+                    className="w-full flex items-center justify-between py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded-lg"
+                  >
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xs text-slate-500">連休</span>
+                      <span className="text-xl font-bold text-slate-800 tabular-nums leading-none">{totalDays}</span>
+                      <span className="text-xs text-slate-500">天</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400">{group.length} 個方案</span>
+                      <span
+                        aria-hidden="true"
+                        className={['text-slate-400 text-sm leading-none transition-transform duration-200', collapsed ? '' : 'rotate-90'].join(' ')}
+                      >
+                        ›
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Cards */}
+                  {!collapsed && (
+                    <div className="space-y-3 pb-4">
+                      {group.map(s => (
+                        <div key={s.id} id={s.id}>
+                          <StrategyCard
+                            strategy={s}
+                            isSelected={selectedStrategy?.id === s.id}
+                            isUpsell={false}
+                            isBest={bestStrategy !== null && s.id === bestStrategy.id}
+                            onSelect={() => handleSelectStrategy(s)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )
-            )}
+            })}
           </div>
-        )}
-
-        {/* Show more button */}
-        {!showAll && paidStrategies.length > INITIAL_SHOW && (
-          <button
-            onClick={() => setShowAll(true)}
-            className="w-full py-3 text-sm text-slate-500 hover:text-brand-600 border border-dashed border-slate-200 rounded-2xl transition-colors mt-1 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-          >
-            顯示全部 {paidStrategies.length} 個方案 ↓
-          </button>
         )}
 
         {/* ── Secondary sections (collapsed by default) ───────────── */}
