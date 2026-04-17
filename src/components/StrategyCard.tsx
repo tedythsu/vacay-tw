@@ -6,9 +6,10 @@ interface Props {
   onSelect: () => void
   showTotalDays?: boolean
   grouped?: boolean   // inside a group container — no own border/shadow
+  hideName?: boolean  // name already shown as sub-group label above
 }
 
-export function StrategyCard({ strategy, isSelected, onSelect, showTotalDays, grouped }: Props) {
+export function StrategyCard({ strategy, isSelected, onSelect, showTotalDays, grouped, hideName }: Props) {
   return (
     <button
       type="button"
@@ -36,9 +37,11 @@ export function StrategyCard({ strategy, isSelected, onSelect, showTotalDays, gr
       )}
 
       {/* Name */}
-      <div className="text-sm font-medium text-slate-800 truncate">
-        {strategy.name}
-      </div>
+      {!hideName && (
+        <div className="text-sm font-medium text-slate-800 truncate">
+          {strategy.name}
+        </div>
+      )}
 
       {/* Date range + totalDays + chevron */}
       <div className="flex items-center justify-between gap-3 mt-1">

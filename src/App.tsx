@@ -351,30 +351,25 @@ export default function App() {
 
                     {!collapsed && (
                       <div className="divide-y divide-slate-100 pb-1">
-                        {(() => {
-                          const subGroups = subGroupByName(group)
-                          const showDividers = subGroups.length > 1
-                          return subGroups.map(([name, subs]) => (
-                            <div key={name}>
-                              {showDividers && (
-                                <div className="flex items-center gap-2 pt-2 pb-1 px-2">
-                                  <span className="text-[10px] text-slate-400 font-semibold shrink-0">{name}</span>
-                                  <div className="flex-1 h-px bg-slate-100" />
-                                </div>
-                              )}
-                              {subs.map(s => (
-                                <div key={s.id} id={s.id}>
-                                  <StrategyCard
-                                    strategy={s}
-                                    isSelected={selectedStrategy?.id === s.id}
-                                    onSelect={() => handleSelectStrategy(s)}
-                                    grouped
-                                  />
-                                </div>
-                              ))}
+                        {subGroupByName(group).map(([name, subs]) => (
+                          <div key={name}>
+                            <div className="flex items-center gap-2 pt-2 pb-0.5 px-2">
+                              <span className="text-xs font-semibold text-slate-500 shrink-0">{name}</span>
+                              <div className="flex-1 h-px bg-slate-200" />
                             </div>
-                          ))
-                        })()}
+                            {subs.map(s => (
+                              <div key={s.id} id={s.id}>
+                                <StrategyCard
+                                  strategy={s}
+                                  isSelected={selectedStrategy?.id === s.id}
+                                  onSelect={() => handleSelectStrategy(s)}
+                                  grouped
+                                  hideName
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -428,30 +423,25 @@ export default function App() {
 
                     {!collapsed && (
                       <div className="divide-y divide-slate-100 pb-1">
-                        {(() => {
-                          const subGroups = subGroupByName(group)
-                          const showDividers = subGroups.length > 1
-                          return subGroups.map(([name, subs]) => (
-                            <div key={name}>
-                              {showDividers && (
-                                <div className="flex items-center gap-2 pt-2 pb-1 px-2">
-                                  <span className="text-[10px] text-slate-400 font-semibold shrink-0">{name}</span>
-                                  <div className="flex-1 h-px bg-slate-100" />
-                                </div>
-                              )}
-                              {subs.map(s => (
-                                <div key={s.id} id={s.id}>
-                                  <StrategyCard
-                                    strategy={s}
-                                    isSelected={selectedStrategy?.id === s.id}
-                                    onSelect={() => handleSelectStrategy(s)}
-                                    grouped
-                                  />
-                                </div>
-                              ))}
+                        {subGroupByName(group).map(([name, subs]) => (
+                          <div key={name}>
+                            <div className="flex items-center gap-2 pt-2 pb-0.5 px-2">
+                              <span className="text-xs font-semibold text-slate-500 shrink-0">{name}</span>
+                              <div className="flex-1 h-px bg-slate-200" />
                             </div>
-                          ))
-                        })()}
+                            {subs.map(s => (
+                              <div key={s.id} id={s.id}>
+                                <StrategyCard
+                                  strategy={s}
+                                  isSelected={selectedStrategy?.id === s.id}
+                                  onSelect={() => handleSelectStrategy(s)}
+                                  grouped
+                                  hideName
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
