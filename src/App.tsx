@@ -53,9 +53,16 @@ export default function App() {
   const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
   const initialYear = INITIAL_HASH_STATE?.year ?? confirmedYears[0]
-  const [monthRange, setMonthRange] = useState<[number, number]>(
-    initialYear === currentYear ? [currentMonth, 12] : [1, 12]
-  )
+  const [monthRange, setMonthRange] = useState<[number, number]>(() => {
+    if (initialYear === currentYear) {
+      // If deep-linking to a past-month strategy, widen range to include it
+      const stratMonth = INITIAL_HASH_STATE
+        ? parseInt(INITIAL_HASH_STATE.strategy.start.slice(5, 7))
+        : currentMonth
+      return [Math.min(stratMonth, currentMonth), 12]
+    }
+    return [1, 12]
+  })
   const [toggledGroups, setToggledGroups] = useState<Set<number>>(new Set())
   const [shareCopied, setShareCopied] = useState(false)
   const [yearCalOpen, setYearCalOpen] = useState(false)
@@ -140,8 +147,10 @@ export default function App() {
   // ── Month filter ────────────────────────────────────────────────────────────
   function matchesMonthFilter(s: ReturnType<typeof calculateStrategies>[number]): boolean {
     const sMonth = parseInt(s.start.slice(5, 7))
-    const eMonth = parseInt(s.end.slice(5, 7))
-    // Show if the strategy's date range overlaps with the selected month range
+    // If end is in a later year (e.g. 元旦 12/31~1/2), treat eMonth as 12
+    const sYear = parseInt(s.start.slice(0, 4))
+    const eYear = parseInt(s.end.slice(0, 4))
+    const eMonth = eYear > sYear ? 12 : parseInt(s.end.slice(5, 7))
     return sMonth <= monthRange[1] && eMonth >= monthRange[0]
   }
 
@@ -385,7 +394,7 @@ export default function App() {
           <p className="text-xs text-slate-500">
             正式請假請依行政院人事行政總處公告為準。
           </p>
-          <p className="text-xs text-slate-500">© {confirmedYears[confirmedYears.length - 1]} vacay.tw</p>
+          <p className="text-xs text-slate-500">© {currentYear} vacay.tw</p>
         </footer>
       </main>
 

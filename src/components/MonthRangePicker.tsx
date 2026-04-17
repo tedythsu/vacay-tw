@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 interface Props {
   value: [number, number]   // [startMonth, endMonth], 1-indexed
   onChange: (v: [number, number]) => void
@@ -8,11 +10,15 @@ const MONTH_LABELS = ['1月','2月','3月','4月','5月','6月','7月','8月','9
 
 export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
   const [start, end] = value
+  // Track which thumb was last touched so it sits on top when both overlap
+  const [activeThumb, setActiveThumb] = useState<'start' | 'end'>('end')
 
   function handleStart(raw: number) {
+    setActiveThumb('start')
     onChange([Math.min(Math.max(raw, minStart), end), end])
   }
   function handleEnd(raw: number) {
+    setActiveThumb('end')
     onChange([start, Math.max(raw, start)])
   }
 
@@ -43,6 +49,7 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
           min={1} max={12} step={1}
           value={start}
           onChange={e => handleStart(Number(e.target.value))}
+          style={{ zIndex: activeThumb === 'start' ? 2 : 1 }}
           className="absolute w-full appearance-none bg-transparent pointer-events-none
             [&::-webkit-slider-thumb]:pointer-events-auto
             [&::-webkit-slider-thumb]:appearance-none
@@ -71,6 +78,7 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
           min={1} max={12} step={1}
           value={end}
           onChange={e => handleEnd(Number(e.target.value))}
+          style={{ zIndex: activeThumb === 'end' ? 2 : 1 }}
           className="absolute w-full appearance-none bg-transparent pointer-events-none
             [&::-webkit-slider-thumb]:pointer-events-auto
             [&::-webkit-slider-thumb]:appearance-none
