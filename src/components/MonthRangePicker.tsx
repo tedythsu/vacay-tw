@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 interface Props {
   value: [number, number]   // [startMonth, endMonth], 1-indexed
@@ -10,31 +10,56 @@ const MONTH_LABELS = ['1月','2月','3月','4月','5月','6月','7月','8月','9
 
 export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
   const [start, end] = value
-  // Track which thumb was last touched so it sits on top when both overlap
-  const [activeThumb, setActiveThumb] = useState<'start' | 'end'>('end')
+  const [lastDragged, setLastDragged] = useState<'start' | 'end'>('end')
+  const trackRef = useRef<HTMLDivElement>(null)
 
-  function handleStart(raw: number) {
-    setActiveThumb('start')
-    onChange([Math.min(Math.max(raw, minStart), end), end])
-  }
-  function handleEnd(raw: number) {
-    setActiveThumb('end')
-    onChange([start, Math.max(raw, start)])
+  function monthFromClientX(clientX: number): number {
+    const rect = trackRef.current!.getBoundingClientRect()
+    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
+    return Math.round(pct * 11) + 1
   }
 
-  // Deterministic z-index when thumbs overlap:
-  // - start = end = minStart → end on top (start can't go left, end can go right)
-  // - start = end otherwise  → start on top (start can go left to open the range)
-  // - start < end            → last-touched thumb on top
-  const startZ = start === end
-    ? (start <= minStart ? 1 : 2)
-    : (activeThumb === 'start' ? 2 : 1)
-  const endZ = start === end
-    ? (start <= minStart ? 2 : 1)
-    : (activeThumb === 'end' ? 2 : 1)
+  // Returns pointer event handlers for a given thumb using setPointerCapture —
+  // this guarantees the dragging thumb keeps receiving pointermove even when the
+  // pointer leaves the element, and works identically on mouse and touch.
+  function thumbHandlers(thumb: 'start' | 'end') {
+    return {
+      onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+        e.currentTarget.setPointerCapture(e.pointerId)
+        setLastDragged(thumb)
+      },
+      onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+        if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
+        const month = monthFromClientX(e.clientX)
+        if (thumb === 'start') {
+          onChange([Math.min(Math.max(month, minStart), end), end])
+        } else {
+          onChange([start, Math.max(month, start)])
+        }
+      },
+      onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
+        e.currentTarget.releasePointerCapture(e.pointerId)
+      },
+      onPointerCancel(e: React.PointerEvent<HTMLDivElement>) {
+        e.currentTarget.releasePointerCapture(e.pointerId)
+      },
+    }
+  }
 
   const leftPct  = ((start - 1) / 11) * 100
   const rightPct = ((end   - 1) / 11) * 100
+
+  // Deterministic z-index when thumbs overlap:
+  // both at minStart → end on top (start can't go left, end can go right)
+  // both elsewhere   → start on top (start can go left to open range)
+  // not overlapping  → last dragged thumb is on top
+  const startOnTop = start === end ? start > minStart : lastDragged === 'start'
+
+  const thumbClass =
+    'absolute w-5 h-5 -translate-x-1/2 rounded-full bg-brand-500 shadow-md ' +
+    'cursor-grab active:cursor-grabbing active:bg-brand-600 ' +
+    'touch-none select-none ' +
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2'
 
   return (
     <div className="px-1">
@@ -45,7 +70,7 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
       </div>
 
       {/* Slider track */}
-      <div className="relative h-5 flex items-center">
+      <div ref={trackRef} className="relative h-5 flex items-center">
         {/* Base track */}
         <div className="absolute w-full h-1 bg-slate-200 rounded-full" />
         {/* Filled range */}
@@ -54,62 +79,40 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
           style={{ left: `${leftPct}%`, right: `${100 - rightPct}%` }}
         />
 
-        {/* Start thumb input */}
-        <input
-          type="range"
-          min={1} max={12} step={1}
-          value={start}
-          onChange={e => handleStart(Number(e.target.value))}
-          style={{ zIndex: startZ }}
-          className="absolute w-full appearance-none bg-transparent pointer-events-none
-            [&::-webkit-slider-thumb]:pointer-events-auto
-            [&::-webkit-slider-thumb]:appearance-none
-            [&::-webkit-slider-thumb]:w-5
-            [&::-webkit-slider-thumb]:h-5
-            [&::-webkit-slider-thumb]:rounded-full
-            [&::-webkit-slider-thumb]:bg-brand-500
-            [&::-webkit-slider-thumb]:shadow-md
-            [&::-webkit-slider-thumb]:cursor-grab
-            [&::-webkit-slider-thumb]:active:cursor-grabbing
-            [&::-webkit-slider-thumb]:active:bg-brand-600
-            [&::-moz-range-thumb]:pointer-events-auto
-            [&::-moz-range-thumb]:border-0
-            [&::-moz-range-thumb]:w-5
-            [&::-moz-range-thumb]:h-5
-            [&::-moz-range-thumb]:rounded-full
-            [&::-moz-range-thumb]:bg-brand-500
-            [&::-moz-range-thumb]:shadow-md
-            [&::-moz-range-thumb]:cursor-grab"
+        {/* Start thumb */}
+        <div
+          {...thumbHandlers('start')}
+          role="slider"
           aria-label="篩選起始月份"
+          aria-valuemin={minStart}
+          aria-valuemax={12}
+          aria-valuenow={start}
+          aria-valuetext={MONTH_LABELS[start - 1]}
+          tabIndex={0}
+          onKeyDown={e => {
+            if (e.key === 'ArrowLeft') onChange([Math.max(start - 1, minStart), end])
+            if (e.key === 'ArrowRight') onChange([Math.min(start + 1, end), end])
+          }}
+          className={thumbClass}
+          style={{ left: `${leftPct}%`, zIndex: startOnTop ? 2 : 1 }}
         />
 
-        {/* End thumb input */}
-        <input
-          type="range"
-          min={1} max={12} step={1}
-          value={end}
-          onChange={e => handleEnd(Number(e.target.value))}
-          style={{ zIndex: endZ }}
-          className="absolute w-full appearance-none bg-transparent pointer-events-none
-            [&::-webkit-slider-thumb]:pointer-events-auto
-            [&::-webkit-slider-thumb]:appearance-none
-            [&::-webkit-slider-thumb]:w-5
-            [&::-webkit-slider-thumb]:h-5
-            [&::-webkit-slider-thumb]:rounded-full
-            [&::-webkit-slider-thumb]:bg-brand-500
-            [&::-webkit-slider-thumb]:shadow-md
-            [&::-webkit-slider-thumb]:cursor-grab
-            [&::-webkit-slider-thumb]:active:cursor-grabbing
-            [&::-webkit-slider-thumb]:active:bg-brand-600
-            [&::-moz-range-thumb]:pointer-events-auto
-            [&::-moz-range-thumb]:border-0
-            [&::-moz-range-thumb]:w-5
-            [&::-moz-range-thumb]:h-5
-            [&::-moz-range-thumb]:rounded-full
-            [&::-moz-range-thumb]:bg-brand-500
-            [&::-moz-range-thumb]:shadow-md
-            [&::-moz-range-thumb]:cursor-grab"
+        {/* End thumb */}
+        <div
+          {...thumbHandlers('end')}
+          role="slider"
           aria-label="篩選結束月份"
+          aria-valuemin={1}
+          aria-valuemax={12}
+          aria-valuenow={end}
+          aria-valuetext={MONTH_LABELS[end - 1]}
+          tabIndex={0}
+          onKeyDown={e => {
+            if (e.key === 'ArrowLeft') onChange([start, Math.max(end - 1, start)])
+            if (e.key === 'ArrowRight') onChange([start, Math.min(end + 1, 12)])
+          }}
+          className={thumbClass}
+          style={{ left: `${rightPct}%`, zIndex: startOnTop ? 1 : 2 }}
         />
       </div>
 
