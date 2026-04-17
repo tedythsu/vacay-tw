@@ -124,13 +124,17 @@ export default function App() {
     setSelectedStrategy(strategy)
     setLastStrategy(strategy)
     setSheetOpen(true)
-    window.history.replaceState(null, '', '#' + strategy.id)
+    if (location.hash !== '#' + strategy.id) {
+      window.history.replaceState(null, '', '#' + strategy.id)
+    }
   }
 
   function handleCloseSheet() {
     setSheetOpen(false)
     setSelectedStrategy(null)
-    window.history.replaceState(null, '', location.pathname)
+    if (location.hash) {
+      window.history.replaceState(null, '', location.pathname)
+    }
   }
 
   function handleBudgetChange(delta: number) {
