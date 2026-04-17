@@ -228,13 +228,19 @@ export default function App() {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 pt-5 pb-6 mb-6">
 
           {/* ── Mode toggle ──────────────────────────────────── */}
-          <div className="flex bg-slate-100 rounded-[10px] p-[3px] gap-[3px] mb-[18px]" role="radiogroup" aria-label="查詢模式">
+          <div className="relative flex bg-slate-100 rounded-[10px] p-[3px] gap-[3px] mb-[18px]" role="radiogroup" aria-label="查詢模式">
+            {/* Sliding active pill */}
+            <div
+              aria-hidden="true"
+              className="absolute top-[3px] bottom-[3px] rounded-[8px] bg-white shadow-sm transition-transform duration-200 ease-in-out pointer-events-none"
+              style={{ left: '3px', width: 'calc(50% - 4.5px)', transform: mode === 'b' ? 'translateX(calc(100% + 3px))' : 'translateX(0)' }}
+            />
             <button
               onClick={() => handleModeChange('a')}
               role="radio"
               className={[
-                'flex-1 rounded-[8px] py-[7px] text-[13px] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
-                mode === 'a' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400',
+                'relative flex-1 z-10 rounded-[8px] py-[7px] text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+                mode === 'a' ? 'text-slate-900' : 'text-slate-400',
               ].join(' ')}
               aria-checked={mode === 'a'}
             >我有假</button>
@@ -242,8 +248,8 @@ export default function App() {
               onClick={() => handleModeChange('b')}
               role="radio"
               className={[
-                'flex-1 rounded-[8px] py-[7px] text-[13px] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
-                mode === 'b' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400',
+                'relative flex-1 z-10 rounded-[8px] py-[7px] text-[13px] font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+                mode === 'b' ? 'text-slate-900' : 'text-slate-400',
               ].join(' ')}
               aria-checked={mode === 'b'}
             >我要休</button>
