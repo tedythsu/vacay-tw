@@ -32,9 +32,9 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
         if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
         const month = monthFromClientX(e.clientX)
         if (thumb === 'start') {
-          onChange([Math.min(Math.max(month, minStart), end), end])
+          onChange([Math.min(Math.max(month, minStart), end - 1), end])
         } else {
-          onChange([start, Math.max(month, start)])
+          onChange([start, Math.max(month, start + 1)])
         }
       },
       onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
@@ -49,11 +49,8 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
   const leftPct  = ((start - 1) / 11) * 100
   const rightPct = ((end   - 1) / 11) * 100
 
-  // Deterministic z-index when thumbs overlap:
-  // both at minStart → end on top (start can't go left, end can go right)
-  // both elsewhere   → start on top (start can go left to open range)
-  // not overlapping  → last dragged thumb is on top
-  const startOnTop = start === end ? start > minStart : lastDragged === 'start'
+  // Last dragged thumb sits on top (purely cosmetic, thumbs never overlap)
+  const startOnTop = lastDragged === 'start'
 
   const thumbClass =
     'absolute w-5 h-5 -translate-x-1/2 rounded-full bg-brand-500 shadow-md ' +
@@ -91,7 +88,7 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
           tabIndex={0}
           onKeyDown={e => {
             if (e.key === 'ArrowLeft') onChange([Math.max(start - 1, minStart), end])
-            if (e.key === 'ArrowRight') onChange([Math.min(start + 1, end), end])
+            if (e.key === 'ArrowRight') onChange([Math.min(start + 1, end - 1), end])
           }}
           className={thumbClass}
           style={{ left: `${leftPct}%`, zIndex: startOnTop ? 2 : 1 }}
@@ -108,7 +105,7 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
           aria-valuetext={MONTH_LABELS[end - 1]}
           tabIndex={0}
           onKeyDown={e => {
-            if (e.key === 'ArrowLeft') onChange([start, Math.max(end - 1, start)])
+            if (e.key === 'ArrowLeft') onChange([start, Math.max(end - 1, start + 1)])
             if (e.key === 'ArrowRight') onChange([start, Math.min(end + 1, 12)])
           }}
           className={thumbClass}
