@@ -234,23 +234,23 @@ export default function App() {
 
           {/* 我要請/休 N 天假 */}
           <div className="flex items-center justify-center gap-3">
-            <span className="text-sm text-slate-600">我要請</span>
-            <div role="group" aria-label="請假天數" className="flex items-center gap-2">
+            <span className="text-sm text-slate-600">我要{mode === 'a' ? '請' : '休'}</span>
+            <div role="group" aria-label={mode === 'a' ? '請假天數' : '目標連休天數'} className="flex items-center gap-2">
               <button
-                onClick={() => handleBudgetChange(-1)}
-                disabled={budget <= MIN_BUDGET}
+                onClick={() => mode === 'a' ? handleBudgetChange(-1) : handleModeBDaysChange(-1)}
+                disabled={(mode === 'a' ? budget : modeBDays) <= MIN_BUDGET}
                 className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                aria-label="減少請假天數"
+                aria-label={mode === 'a' ? '減少請假天數' : '減少連休天數'}
               >−</button>
               <span
-                aria-label={`目前 ${budget} 天`}
+                aria-label={`目前 ${mode === 'a' ? budget : modeBDays} 天`}
                 className="text-xl font-bold text-brand-600 w-9 text-center tabular-nums"
-              >{budget}</span>
+              >{mode === 'a' ? budget : modeBDays}</span>
               <button
-                onClick={() => handleBudgetChange(1)}
-                disabled={budget >= MAX_BUDGET}
+                onClick={() => mode === 'a' ? handleBudgetChange(1) : handleModeBDaysChange(1)}
+                disabled={(mode === 'a' ? budget : modeBDays) >= MAX_BUDGET}
                 className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                aria-label="增加請假天數"
+                aria-label={mode === 'a' ? '增加請假天數' : '增加連休天數'}
               >+</button>
             </div>
             <span className="text-sm text-slate-600">天假</span>
