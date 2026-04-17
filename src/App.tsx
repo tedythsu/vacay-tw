@@ -350,24 +350,26 @@ export default function App() {
                     </button>
 
                     {!collapsed && (
-                      <div className="divide-y divide-slate-100 pb-1">
+                      <div className="pb-1">
                         {subGroupByName(group).map(([name, subs]) => (
                           <div key={name}>
                             <div className="flex items-center gap-2 pt-2 pb-0.5 px-2">
                               <span className="text-xs font-semibold text-slate-500 shrink-0">{name}</span>
                               <div className="flex-1 h-px bg-slate-200" />
                             </div>
-                            {subs.map(s => (
-                              <div key={s.id} id={s.id}>
-                                <StrategyCard
-                                  strategy={s}
-                                  isSelected={selectedStrategy?.id === s.id}
-                                  onSelect={() => handleSelectStrategy(s)}
-                                  grouped
-                                  hideName
-                                />
-                              </div>
-                            ))}
+                            <div className="divide-y divide-slate-100">
+                              {subs.map(s => (
+                                <div key={s.id} id={s.id}>
+                                  <StrategyCard
+                                    strategy={s}
+                                    isSelected={selectedStrategy?.id === s.id}
+                                    onSelect={() => handleSelectStrategy(s)}
+                                    grouped
+                                    hideName
+                                  />
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -422,24 +424,26 @@ export default function App() {
                     </button>
 
                     {!collapsed && (
-                      <div className="divide-y divide-slate-100 pb-1">
+                      <div className="pb-1">
                         {subGroupByName(group).map(([name, subs]) => (
                           <div key={name}>
                             <div className="flex items-center gap-2 pt-2 pb-0.5 px-2">
                               <span className="text-xs font-semibold text-slate-500 shrink-0">{name}</span>
                               <div className="flex-1 h-px bg-slate-200" />
                             </div>
-                            {subs.map(s => (
-                              <div key={s.id} id={s.id}>
-                                <StrategyCard
-                                  strategy={s}
-                                  isSelected={selectedStrategy?.id === s.id}
-                                  onSelect={() => handleSelectStrategy(s)}
-                                  grouped
-                                  hideName
-                                />
-                              </div>
-                            ))}
+                            <div className="divide-y divide-slate-100">
+                              {subs.map(s => (
+                                <div key={s.id} id={s.id}>
+                                  <StrategyCard
+                                    strategy={s}
+                                    isSelected={selectedStrategy?.id === s.id}
+                                    onSelect={() => handleSelectStrategy(s)}
+                                    grouped
+                                    hideName
+                                  />
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         ))}
                       </div>
