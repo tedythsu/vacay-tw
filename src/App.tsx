@@ -184,11 +184,13 @@ export default function App() {
       <main className="max-w-lg mx-auto px-4" inert={(sheetOpen || calYear !== null) || undefined}>
 
         {/* ── Header ─────────────────────────────────────────────── */}
-        <header className="pt-8 pb-6 text-center">
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+        <header className="pt-10 pb-8 text-center">
+          <p className="text-xs font-semibold tracking-[0.18em] text-brand-500 mb-2">
             vacay.tw
+          </p>
+          <h1 className="text-[1.75rem] font-extrabold tracking-tight text-slate-900 leading-none">
+            連假精算器
           </h1>
-          <p className="text-sm text-slate-500 mt-1">找出最划算的連休方案</p>
         </header>
 
         {/* ── Query Block ──────────────────────────────────────────── */}
