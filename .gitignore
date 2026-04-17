@@ -24,6 +24,7 @@ dist-ssr
 *.sw?
 
 .superpowers/
+.claude/
 
 # Auto-generated at build time from ruyut/TaiwanCalendar CDN
 src/data/holidays.json
