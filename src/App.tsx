@@ -196,6 +196,23 @@ export default function App() {
     }
   }
 
+  // ── Mode B: filter by totalDays, group by leaveDays (asc) ──────────────────
+  const modeBFiltered = strategies.filter(
+    s => !s.isFreebie && s.totalDays === modeBDays && matchesMonthFilter(s)
+  )
+
+  const groupedModeB: [number, Strategy[]][] = []
+  {
+    const map = new Map<number, Strategy[]>()
+    for (const s of modeBFiltered) {
+      if (!map.has(s.leaveDays)) map.set(s.leaveDays, [])
+      map.get(s.leaveDays)!.push(s)
+    }
+    for (const entry of [...map.entries()].sort((a, b) => a[0] - b[0])) {
+      groupedModeB.push(entry)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-page font-sans">
       <main className="max-w-lg mx-auto px-4" inert={(sheetOpen || calYear !== null) || undefined}>
