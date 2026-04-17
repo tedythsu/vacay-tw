@@ -192,7 +192,7 @@ export default function App() {
         </header>
 
         {/* ── Query Block ──────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 pt-4 pb-5 mb-6">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 pt-5 pb-6 mb-6">
 
           {/* 我要請 N 天假 */}
           <div className="flex items-center justify-center gap-3">
@@ -219,7 +219,7 @@ export default function App() {
           </div>
 
           {/* 幫我在這段時間裡，找出最划算的連休方案 */}
-          <p className="text-sm text-slate-500 text-center mt-3 mb-4">
+          <p className="text-sm text-slate-500 text-center mt-5 mb-5">
             幫我在這段時間裡，找出最划算的連休方案
           </p>
 
