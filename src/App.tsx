@@ -289,68 +289,133 @@ export default function App() {
 
         </div>
 
-        {/* ── Paid Strategy List (grouped by 連休天數) ────────────── */}
-        {paidStrategies.length === 0 ? (
-          <div className="py-10 text-center">
-            <p className="text-sm text-slate-500">沒有符合條件的方案</p>
-          </div>
-        ) : (
-          <div className="mb-2 space-y-2">
-            {groupedPaid.map(([totalDays, group], gi) => {
-              const isBestGroup = gi === 0
-              const collapsed = isBestGroup ? toggledGroups.has(totalDays) : !toggledGroups.has(totalDays)
-              return (
-                <div
-                  key={totalDays}
-                  className={[
-                    'rounded-2xl border px-3 pt-1 pb-1',
-                    isBestGroup
-                      ? 'border-amber-300 bg-amber-50'
-                      : 'border-slate-100 bg-white',
-                  ].join(' ')}
-                >
-                  <button
-                    onClick={() => toggleGroup(totalDays)}
-                    aria-expanded={!collapsed}
-                    className="w-full flex items-center justify-between py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded-lg"
+        {/* ── Strategy List ─────────────────────────────────────── */}
+        {mode === 'a' ? (
+          paidStrategies.length === 0 ? (
+            <div className="py-10 text-center">
+              <p className="text-sm text-slate-500">沒有符合條件的方案</p>
+            </div>
+          ) : (
+            <div className="mb-2 space-y-2">
+              {groupedPaid.map(([totalDays, group], gi) => {
+                const isBestGroup = gi === 0
+                const collapsed = isBestGroup ? toggledGroups.has(totalDays) : !toggledGroups.has(totalDays)
+                return (
+                  <div
+                    key={totalDays}
+                    className={[
+                      'rounded-2xl border px-3 pt-1 pb-1',
+                      isBestGroup
+                        ? 'border-amber-300 bg-amber-50'
+                        : 'border-slate-100 bg-white',
+                    ].join(' ')}
                   >
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-slate-500">連休</span>
-                      <span className={['tabular-nums leading-none', isBestGroup ? 'text-xl font-bold text-amber-700' : 'text-xl font-bold text-slate-800'].join(' ')}>{totalDays}</span>
-                      <span className="text-xs text-slate-500">天</span>
-                      {isBestGroup && (
-                        <span className="text-xs bg-amber-400 text-white px-2 py-0.5 rounded-full font-semibold">
-                          ★ 最佳
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-400">{group.length} 個方案</span>
-                      <span
-                        aria-hidden="true"
-                        className={['text-slate-400 text-sm leading-none transition-transform duration-200', collapsed ? '' : 'rotate-90'].join(' ')}
-                      >›</span>
-                    </div>
-                  </button>
+                    <button
+                      onClick={() => toggleGroup(totalDays)}
+                      aria-expanded={!collapsed}
+                      className="w-full flex items-center justify-between py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded-lg"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-slate-500">連休</span>
+                        <span className={['tabular-nums leading-none', isBestGroup ? 'text-xl font-bold text-amber-700' : 'text-xl font-bold text-slate-800'].join(' ')}>{totalDays}</span>
+                        <span className="text-xs text-slate-500">天</span>
+                        {isBestGroup && (
+                          <span className="text-xs bg-amber-400 text-white px-2 py-0.5 rounded-full font-semibold">
+                            ★ 最佳
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400">{group.length} 個方案</span>
+                        <span
+                          aria-hidden="true"
+                          className={['text-slate-400 text-sm leading-none transition-transform duration-200', collapsed ? '' : 'rotate-90'].join(' ')}
+                        >›</span>
+                      </div>
+                    </button>
 
-                  {!collapsed && (
-                    <div className="divide-y divide-slate-100 pb-1">
-                      {group.map(s => (
-                        <div key={s.id} id={s.id}>
-                          <StrategyCard
-                            strategy={s}
-                            isSelected={selectedStrategy?.id === s.id}
-                            onSelect={() => handleSelectStrategy(s)}
-                            grouped
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+                    {!collapsed && (
+                      <div className="divide-y divide-slate-100 pb-1">
+                        {group.map(s => (
+                          <div key={s.id} id={s.id}>
+                            <StrategyCard
+                              strategy={s}
+                              isSelected={selectedStrategy?.id === s.id}
+                              onSelect={() => handleSelectStrategy(s)}
+                              grouped
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )
+        ) : (
+          groupedModeB.length === 0 ? (
+            <div className="py-10 text-center">
+              <p className="text-sm text-slate-500">沒有符合條件的方案</p>
+            </div>
+          ) : (
+            <div className="mb-2 space-y-2">
+              {groupedModeB.map(([leaveDays, group], gi) => {
+                const isBestGroup = gi === 0
+                const collapsed = isBestGroup ? toggledGroups.has(leaveDays) : !toggledGroups.has(leaveDays)
+                return (
+                  <div
+                    key={leaveDays}
+                    className={[
+                      'rounded-2xl border px-3 pt-1 pb-1',
+                      isBestGroup
+                        ? 'border-amber-300 bg-amber-50'
+                        : 'border-slate-100 bg-white',
+                    ].join(' ')}
+                  >
+                    <button
+                      onClick={() => toggleGroup(leaveDays)}
+                      aria-expanded={!collapsed}
+                      className="w-full flex items-center justify-between py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded-lg"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-slate-500">只需請</span>
+                        <span className={['tabular-nums leading-none', isBestGroup ? 'text-xl font-bold text-amber-700' : 'text-xl font-bold text-slate-800'].join(' ')}>{leaveDays}</span>
+                        <span className="text-xs text-slate-500">天</span>
+                        {isBestGroup && (
+                          <span className="text-xs bg-amber-400 text-white px-2 py-0.5 rounded-full font-semibold">
+                            ★ 最佳
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400">{group.length} 個方案</span>
+                        <span
+                          aria-hidden="true"
+                          className={['text-slate-400 text-sm leading-none transition-transform duration-200', collapsed ? '' : 'rotate-90'].join(' ')}
+                        >›</span>
+                      </div>
+                    </button>
+
+                    {!collapsed && (
+                      <div className="divide-y divide-slate-100 pb-1">
+                        {group.map(s => (
+                          <div key={s.id} id={s.id}>
+                            <StrategyCard
+                              strategy={s}
+                              isSelected={selectedStrategy?.id === s.id}
+                              onSelect={() => handleSelectStrategy(s)}
+                              grouped
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )
         )}
 
         {/* ── Freebies + 國定假日總覽 ──────────────────────────────── */}
