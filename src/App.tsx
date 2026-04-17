@@ -26,8 +26,15 @@ const currentMonth = new Date().getMonth() + 1
 
 // Pre-compute all years at module init — data is static, no reason to recompute on interaction.
 // Year-tab switching becomes an O(1) Map lookup instead of a 300ms blocking calculation.
+// Also pass next year's January holidays so cross-year strategies (e.g. 12/28–1/3) are included.
 const ALL_STRATEGIES = new Map(
-  confirmedYears.map(y => [y, calculateStrategies(y, ALL_HOLIDAYS[String(y)] ?? [])])
+  confirmedYears.map(y => {
+    const holidays = ALL_HOLIDAYS[String(y)] ?? []
+    const nextJan = (ALL_HOLIDAYS[String(y + 1)] ?? []).filter(
+      h => h.start.startsWith(`${y + 1}-01`)
+    )
+    return [y, calculateStrategies(y, [...holidays, ...nextJan])]
+  })
 )
 const ALL_HOLIDAY_DATES = new Map(
   confirmedYears.map(y => [y, getAllHolidayDates(ALL_HOLIDAYS[String(y)] ?? [])])
