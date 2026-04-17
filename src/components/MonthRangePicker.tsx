@@ -22,6 +22,17 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
     onChange([start, Math.max(raw, start)])
   }
 
+  // Deterministic z-index when thumbs overlap:
+  // - start = end = minStart → end on top (start can't go left, end can go right)
+  // - start = end otherwise  → start on top (start can go left to open the range)
+  // - start < end            → last-touched thumb on top
+  const startZ = start === end
+    ? (start <= minStart ? 1 : 2)
+    : (activeThumb === 'start' ? 2 : 1)
+  const endZ = start === end
+    ? (start <= minStart ? 2 : 1)
+    : (activeThumb === 'end' ? 2 : 1)
+
   const leftPct  = ((start - 1) / 11) * 100
   const rightPct = ((end   - 1) / 11) * 100
 
@@ -49,7 +60,7 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
           min={1} max={12} step={1}
           value={start}
           onChange={e => handleStart(Number(e.target.value))}
-          style={{ zIndex: activeThumb === 'start' ? 2 : 1 }}
+          style={{ zIndex: startZ }}
           className="absolute w-full appearance-none bg-transparent pointer-events-none
             [&::-webkit-slider-thumb]:pointer-events-auto
             [&::-webkit-slider-thumb]:appearance-none
@@ -78,7 +89,7 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
           min={1} max={12} step={1}
           value={end}
           onChange={e => handleEnd(Number(e.target.value))}
-          style={{ zIndex: activeThumb === 'end' ? 2 : 1 }}
+          style={{ zIndex: endZ }}
           className="absolute w-full appearance-none bg-transparent pointer-events-none
             [&::-webkit-slider-thumb]:pointer-events-auto
             [&::-webkit-slider-thumb]:appearance-none

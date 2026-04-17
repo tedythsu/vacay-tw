@@ -220,11 +220,9 @@ function buildStrategy(
 
 // ─── Main Export ──────────────────────────────────────────────────────────────
 
-const SKIP_HOLIDAYS = new Set(['元旦'])  // Standalone New Year's rarely yields CP >= 2
-
 export function calculateStrategies(year: number, holidays: HolidayEntry[]): Strategy[] {
   const regularHolidays = holidays.filter(
-    h => h.type === 'holiday' && !SKIP_HOLIDAYS.has(h.name.replace(/（.*?）/g, '').trim())
+    h => h.type === 'holiday'
   )
   const makeupHolidays = holidays.filter(h => h.type === 'makeup_work')
 
