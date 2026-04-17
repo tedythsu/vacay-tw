@@ -14,7 +14,7 @@
  * holidays.json is left untouched and the build continues.
  */
 
-import { writeFileSync } from 'fs'
+import { writeFileSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -208,6 +208,7 @@ async function main() {
     return
   }
 
+  mkdirSync(dirname(OUTPUT), { recursive: true })
   writeFileSync(OUTPUT, JSON.stringify(result, null, 2) + '\n')
   console.log('fetch-holidays: ✓ wrote src/data/holidays.json')
 }
