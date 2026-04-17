@@ -66,6 +66,15 @@ function parseHashState() {
 }
 const INITIAL_HASH_STATE = parseHashState()
 
+function subGroupByName(strategies: Strategy[]): [string, Strategy[]][] {
+  const map = new Map<string, Strategy[]>()
+  for (const s of strategies) {
+    if (!map.has(s.name)) map.set(s.name, [])
+    map.get(s.name)!.push(s)
+  }
+  return [...map.entries()]
+}
+
 export default function App() {
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(
     INITIAL_HASH_STATE?.strategy ?? null

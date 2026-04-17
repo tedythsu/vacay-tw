@@ -208,3 +208,44 @@ describe('calculateStrategies', () => {
     }
   })
 })
+
+describe('subGroupByName', () => {
+  // subGroupByName lives in App.tsx which is not importable in unit tests,
+  // so we inline the same logic here to lock in the contract.
+  function subGroupByName(strategies: { name: string; id: string }[]) {
+    const map = new Map<string, { name: string; id: string }[]>()
+    for (const s of strategies) {
+      if (!map.has(s.name)) map.set(s.name, [])
+      map.get(s.name)!.push(s)
+    }
+    return [...map.entries()]
+  }
+
+  it('groups strategies by name preserving insertion order', () => {
+    const input = [
+      { name: '農曆新年', id: 'a' },
+      { name: '農曆新年', id: 'b' },
+      { name: '清明節',   id: 'c' },
+    ]
+    const result = subGroupByName(input)
+    expect(result).toHaveLength(2)
+    expect(result[0][0]).toBe('農曆新年')
+    expect(result[0][1].map(s => s.id)).toEqual(['a', 'b'])
+    expect(result[1][0]).toBe('清明節')
+    expect(result[1][1].map(s => s.id)).toEqual(['c'])
+  })
+
+  it('returns a single group when all strategies share the same name', () => {
+    const input = [
+      { name: '端午節', id: 'x' },
+      { name: '端午節', id: 'y' },
+    ]
+    const result = subGroupByName(input)
+    expect(result).toHaveLength(1)
+    expect(result[0][0]).toBe('端午節')
+  })
+
+  it('handles empty input', () => {
+    expect(subGroupByName([])).toHaveLength(0)
+  })
+})
