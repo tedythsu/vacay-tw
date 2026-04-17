@@ -348,7 +348,7 @@ export default function App() {
                     onClick={() => hasData && setCalYear(y)}
                     disabled={!hasData}
                     className={[
-                      'flex-1 flex items-center justify-between px-1 py-2 rounded-lg text-xs transition-colors',
+                      'flex-1 flex items-center justify-center gap-1 px-1 py-2 rounded-lg text-xs transition-colors',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
                       hasData
                         ? 'text-green-700 hover:text-green-900'
