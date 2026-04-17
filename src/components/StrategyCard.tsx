@@ -4,22 +4,26 @@ interface Props {
   strategy: Strategy
   isSelected: boolean
   onSelect: () => void
-  showTotalDays?: boolean   // for freebie cards rendered outside grouped list
+  showTotalDays?: boolean
+  grouped?: boolean   // inside a group container — no own border/shadow
 }
 
-export function StrategyCard({ strategy, isSelected, onSelect, showTotalDays }: Props) {
+export function StrategyCard({ strategy, isSelected, onSelect, showTotalDays, grouped }: Props) {
   return (
     <button
       type="button"
       onClick={onSelect}
       className={[
-        'w-full text-left rounded-2xl p-4 transition-all duration-200',
-        'hover:scale-[1.02] active:scale-[0.99]',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
-        isSelected
-          ? 'border-2 border-brand-500 shadow-md shadow-brand-100'
-          : 'border border-slate-200 shadow-sm',
-        'bg-white',
+        'w-full text-left transition-all duration-200',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
+        grouped
+          ? 'rounded-xl px-2 py-3 hover:bg-slate-50 active:scale-[0.99]'
+          : [
+              'rounded-2xl p-4 bg-white hover:scale-[1.02] active:scale-[0.99]',
+              isSelected
+                ? 'border-2 border-brand-500 shadow-md shadow-brand-100'
+                : 'border border-slate-200 shadow-sm',
+            ].join(' '),
       ].join(' ')}
     >
       {/* Badges */}
@@ -36,15 +40,20 @@ export function StrategyCard({ strategy, isSelected, onSelect, showTotalDays }: 
         {strategy.name}
       </div>
 
-      {/* Date range + totalDays for standalone cards */}
-      <div className="flex items-baseline justify-between gap-3 mt-1">
-        <div className="text-xs text-slate-500 tabular-nums">
-          {strategy.start.replace(/-/g, '/')} ～ {strategy.end.replace(/-/g, '/')}
-        </div>
-        {showTotalDays && (
-          <div className="text-sm font-bold text-slate-700 tabular-nums shrink-0">
-            連休 {strategy.totalDays} 天
+      {/* Date range + totalDays + chevron */}
+      <div className="flex items-center justify-between gap-3 mt-1">
+        <div className="flex items-baseline gap-3 min-w-0">
+          <div className="text-xs text-slate-500 tabular-nums truncate">
+            {strategy.start.replace(/-/g, '/')} ～ {strategy.end.replace(/-/g, '/')}
           </div>
+          {showTotalDays && (
+            <div className="text-sm font-bold text-slate-700 tabular-nums shrink-0">
+              連休 {strategy.totalDays} 天
+            </div>
+          )}
+        </div>
+        {grouped && (
+          <span className="text-slate-400 text-sm shrink-0" aria-hidden="true">›</span>
         )}
       </div>
     </button>

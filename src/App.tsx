@@ -285,13 +285,14 @@ export default function App() {
                   </button>
 
                   {!collapsed && (
-                    <div className="space-y-3 pb-3">
+                    <div className="divide-y divide-slate-100 pb-1">
                       {group.map(s => (
                         <div key={s.id} id={s.id}>
                           <StrategyCard
                             strategy={s}
                             isSelected={selectedStrategy?.id === s.id}
                             onSelect={() => handleSelectStrategy(s)}
+                            grouped
                           />
                         </div>
                       ))}
@@ -323,7 +324,7 @@ export default function App() {
                   </div>
                 </button>
                 {showFreebies && (
-                  <div className="space-y-3 pb-3">
+                  <div className="divide-y divide-green-100 pb-1">
                     {freebies.map(s => (
                       <div key={s.id} id={s.id}>
                         <StrategyCard
@@ -331,6 +332,7 @@ export default function App() {
                           isSelected={selectedStrategy?.id === s.id}
                           showTotalDays
                           onSelect={() => handleSelectStrategy(s)}
+                          grouped
                         />
                       </div>
                     ))}
