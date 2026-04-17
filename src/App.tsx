@@ -190,16 +190,9 @@ export default function App() {
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <header className="pt-10 pb-8 flex justify-center">
-          <div className="w-max">
-            <div className="flex justify-between text-xs font-semibold text-brand-500 mb-2" aria-hidden="true">
-              {'vacay.tw'.split('').map((char, i) => (
-                <span key={i}>{char}</span>
-              ))}
-            </div>
-            <h1 className="text-[1.75rem] font-extrabold tracking-tight text-slate-900 leading-none">
-              <span className="sr-only">vacay.tw — </span>連假精算器
-            </h1>
-          </div>
+          <h1>
+            <img src="/banner.png" alt="vacay.tw — 連假精算器" className="w-full" />
+          </h1>
         </header>
 
         {/* ── Query Block ──────────────────────────────────────────── */}
