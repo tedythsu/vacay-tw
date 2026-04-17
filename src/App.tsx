@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react'
 import { useState, useEffect, useRef } from 'react'
 import { format } from 'date-fns'
 import { calculateStrategies, getAllHolidayDates } from './engine/strategy'
@@ -473,6 +474,7 @@ export default function App() {
         onClose={() => setCalYear(null)}
       />
 
+      <Analytics />
     </div>
   )
 }
