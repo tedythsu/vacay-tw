@@ -366,11 +366,23 @@ export default function App() {
         </div>
 
         {/* ── Footer ─────────────────────────────────────────────── */}
-        <footer className="py-6 border-t border-slate-100 text-center space-y-1">
+        <footer className="py-6 border-t border-slate-100 text-center space-y-1.5">
           <p className="text-xs text-slate-500">
             正式請假請依行政院人事行政總處公告為準。
           </p>
           <p className="text-xs text-slate-500">© {currentYear} vacay.tw</p>
+          <p className="text-xs text-slate-400">
+            假期資料來源：
+            <a
+              href="https://github.com/ruyut/TaiwanCalendar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-slate-600"
+            >
+              TaiwanCalendar
+            </a>
+            （CC BY 4.0）
+          </p>
         </footer>
       </main>
 

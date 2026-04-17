@@ -4,7 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "fetch-holidays": "node scripts/fetch-holidays.mjs",
+    "predev": "node scripts/fetch-holidays.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/fetch-holidays.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
