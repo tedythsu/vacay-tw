@@ -197,9 +197,9 @@ export default function App() {
   }
 
   // ── Mode B: filter by totalDays, group by leaveDays (asc) ──────────────────
-  const modeBFiltered = strategies.filter(
-    s => !s.isFreebie && s.totalDays === modeBDays && matchesMonthFilter(s)
-  )
+  const modeBFiltered = strategies
+    .filter(s => !s.isFreebie && s.totalDays === modeBDays && matchesMonthFilter(s))
+    .sort((a, b) => a.start.localeCompare(b.start))
 
   const groupedModeB: [number, Strategy[]][] = []
   {
