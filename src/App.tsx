@@ -4,6 +4,7 @@ import { calculateStrategies, getAllHolidayDates } from './engine/strategy'
 import type { Strategy, HolidayEntry } from './engine/strategy'
 import { StrategyCard } from './components/StrategyCard'
 import { Calendar } from './components/Calendar'
+import { YearCalendarSheet } from './components/YearCalendarSheet'
 import { MonthRangePicker } from './components/MonthRangePicker'
 import holidaysData from './data/holidays.json'
 
@@ -81,6 +82,7 @@ export default function App() {
   })
   const [toggledGroups, setToggledGroups] = useState<Set<number>>(new Set())
   const [shareCopied, setShareCopied] = useState(false)
+  const [calYear, setCalYear] = useState<number | null>(null)
 
   const sheetRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
@@ -179,7 +181,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-page font-sans">
-      <main className="max-w-lg mx-auto px-4" inert={sheetOpen || undefined}>
+      <main className="max-w-lg mx-auto px-4" inert={(sheetOpen || calYear !== null) || undefined}>
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <header className="pt-8 pb-6 text-center">
@@ -300,43 +302,67 @@ export default function App() {
           </div>
         )}
 
-        {/* ── Freebies section ────────────────────────────────────── */}
-        {freebies.length > 0 && (
-          <div className="mt-2">
-            <div className="rounded-2xl border border-green-300 bg-green-50 px-3 pt-1 pb-1">
-              <button
-                onClick={() => setShowFreebies(prev => !prev)}
-                aria-expanded={showFreebies}
-                className="w-full flex items-center justify-between py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded-lg"
-              >
-                <div className="flex items-baseline gap-1.5">
+        {/* ── Freebies + 國定假日總覽 ──────────────────────────────── */}
+        <div className="mt-2">
+          <div className="rounded-2xl border border-green-300 bg-green-50 px-3 pt-1 pb-1">
+            {freebies.length > 0 && (
+              <>
+                <button
+                  onClick={() => setShowFreebies(prev => !prev)}
+                  aria-expanded={showFreebies}
+                  className="w-full flex items-center justify-between py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded-lg"
+                >
                   <span className="text-xs text-slate-500">國定連假</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-400">{freebies.length} 個方案</span>
-                  <span
-                    aria-hidden="true"
-                    className={['text-slate-400 text-sm leading-none transition-transform duration-200', showFreebies ? 'rotate-90' : ''].join(' ')}
-                  >›</span>
-                </div>
-              </button>
-              {showFreebies && (
-                <div className="space-y-3 pb-3">
-                  {freebies.map(s => (
-                    <div key={s.id} id={s.id}>
-                      <StrategyCard
-                        strategy={s}
-                        isSelected={selectedStrategy?.id === s.id}
-                        showTotalDays
-                        onSelect={() => handleSelectStrategy(s)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400">{freebies.length} 個方案</span>
+                    <span
+                      aria-hidden="true"
+                      className={['text-slate-400 text-sm leading-none transition-transform duration-200', showFreebies ? 'rotate-90' : ''].join(' ')}
+                    >›</span>
+                  </div>
+                </button>
+                {showFreebies && (
+                  <div className="space-y-3 pb-3">
+                    {freebies.map(s => (
+                      <div key={s.id} id={s.id}>
+                        <StrategyCard
+                          strategy={s}
+                          isSelected={selectedStrategy?.id === s.id}
+                          showTotalDays
+                          onSelect={() => handleSelectStrategy(s)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* 國定假日總覽 — 固定顯示，無資料的年份呈灰色 */}
+            <div className="flex gap-1 border-t border-green-200 pt-1 pb-1">
+              {[currentYear, currentYear + 1].map(y => {
+                const hasData = !!ALL_HOLIDAYS[String(y)]
+                return (
+                  <button
+                    key={y}
+                    onClick={() => hasData && setCalYear(y)}
+                    disabled={!hasData}
+                    className={[
+                      'flex-1 flex items-center justify-between px-1 py-2 rounded-lg text-xs transition-colors',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
+                      hasData
+                        ? 'text-green-700 hover:text-green-900'
+                        : 'text-slate-400 cursor-not-allowed',
+                    ].join(' ')}
+                  >
+                    <span className="font-medium">{y} 國定假日總覽</span>
+                    <span className={hasData ? 'text-green-400' : 'text-slate-300'}>›</span>
+                  </button>
+                )
+              })}
             </div>
           </div>
-        )}
+        </div>
 
         {/* ── Footer ─────────────────────────────────────────────── */}
         <footer className="py-6 border-t border-slate-100 text-center space-y-1">
@@ -422,6 +448,14 @@ export default function App() {
           )}
         </div>
       </>
+
+      {/* ── Year Calendar Sheet ─────────────────────────────────── */}
+      <YearCalendarSheet
+        year={calYear ?? currentYear}
+        holidays={ALL_HOLIDAYS[String(calYear ?? currentYear)] ?? []}
+        isOpen={calYear !== null}
+        onClose={() => setCalYear(null)}
+      />
 
     </div>
   )
