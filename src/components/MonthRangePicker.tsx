@@ -1,27 +1,38 @@
 import { useState, useRef } from 'react'
 
 interface Props {
-  value: [number, number]   // [startMonth, endMonth], 1-indexed
+  value: [number, number]   // absolute month positions (months since baseYear Jan, 0-indexed)
   onChange: (v: [number, number]) => void
-  minStart?: number         // minimum allowed start month (default 1)
+  minPos: number
+  maxPos: number
+  baseYear: number
 }
 
-const MONTH_LABELS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
+function decodeYM(pos: number, baseYear: number): { year: number; month: number } {
+  return {
+    year: baseYear + Math.floor(pos / 12),
+    month: (pos % 12) + 1,
+  }
+}
 
-export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
+function formatYM(pos: number, baseYear: number): string {
+  const { year, month } = decodeYM(pos, baseYear)
+  return `${year}年${month}月`
+}
+
+export function MonthRangePicker({ value, onChange, minPos, maxPos, baseYear }: Props) {
   const [start, end] = value
   const [lastDragged, setLastDragged] = useState<'start' | 'end'>('end')
   const trackRef = useRef<HTMLDivElement>(null)
 
-  function monthFromClientX(clientX: number): number {
+  const range = maxPos - minPos
+
+  function posFromClientX(clientX: number): number {
     const rect = trackRef.current!.getBoundingClientRect()
     const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
-    return Math.round(pct * 11) + 1
+    return Math.round(pct * range) + minPos
   }
 
-  // Returns pointer event handlers for a given thumb using setPointerCapture —
-  // this guarantees the dragging thumb keeps receiving pointermove even when the
-  // pointer leaves the element, and works identically on mouse and touch.
   function thumbHandlers(thumb: 'start' | 'end') {
     return {
       onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
@@ -30,11 +41,11 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
       },
       onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
         if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
-        const month = monthFromClientX(e.clientX)
+        const pos = posFromClientX(e.clientX)
         if (thumb === 'start') {
-          onChange([Math.min(Math.max(month, minStart), end - 1), end])
+          onChange([Math.min(Math.max(pos, minPos), end - 1), end])
         } else {
-          onChange([start, Math.max(month, start + 1)])
+          onChange([start, Math.max(Math.min(pos, maxPos), start + 1)])
         }
       },
       onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
@@ -46,10 +57,8 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
     }
   }
 
-  const leftPct  = ((start - 1) / 11) * 100
-  const rightPct = ((end   - 1) / 11) * 100
-
-  // Last dragged thumb sits on top (purely cosmetic, thumbs never overlap)
+  const leftPct  = ((start - minPos) / range) * 100
+  const rightPct = ((end   - minPos) / range) * 100
   const startOnTop = lastDragged === 'start'
 
   const thumbClass =
@@ -60,17 +69,15 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
 
   return (
     <div className="px-1">
-      {/* Month labels */}
+      {/* Labels */}
       <div className="flex justify-between mb-2">
-        <span className="text-xs font-medium text-brand-600 tabular-nums">{MONTH_LABELS[start - 1]}</span>
-        <span className="text-xs font-medium text-brand-600 tabular-nums">{MONTH_LABELS[end - 1]}</span>
+        <span className="text-xs font-medium text-brand-600 tabular-nums">{formatYM(start, baseYear)}</span>
+        <span className="text-xs font-medium text-brand-600 tabular-nums">{formatYM(end, baseYear)}</span>
       </div>
 
-      {/* Slider track */}
+      {/* Track */}
       <div ref={trackRef} className="relative h-5 flex items-center">
-        {/* Base track */}
         <div className="absolute w-full h-1 bg-slate-200 rounded-full" />
-        {/* Filled range */}
         <div
           className="absolute h-1 bg-brand-200 rounded-full"
           style={{ left: `${leftPct}%`, right: `${100 - rightPct}%` }}
@@ -81,13 +88,13 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
           {...thumbHandlers('start')}
           role="slider"
           aria-label="篩選起始月份"
-          aria-valuemin={minStart}
-          aria-valuemax={12}
+          aria-valuemin={minPos}
+          aria-valuemax={maxPos}
           aria-valuenow={start}
-          aria-valuetext={MONTH_LABELS[start - 1]}
+          aria-valuetext={formatYM(start, baseYear)}
           tabIndex={0}
           onKeyDown={e => {
-            if (e.key === 'ArrowLeft') onChange([Math.max(start - 1, minStart), end])
+            if (e.key === 'ArrowLeft') onChange([Math.max(start - 1, minPos), end])
             if (e.key === 'ArrowRight') onChange([Math.min(start + 1, end - 1), end])
           }}
           className={thumbClass}
@@ -99,31 +106,40 @@ export function MonthRangePicker({ value, onChange, minStart = 1 }: Props) {
           {...thumbHandlers('end')}
           role="slider"
           aria-label="篩選結束月份"
-          aria-valuemin={1}
-          aria-valuemax={12}
+          aria-valuemin={minPos}
+          aria-valuemax={maxPos}
           aria-valuenow={end}
-          aria-valuetext={MONTH_LABELS[end - 1]}
+          aria-valuetext={formatYM(end, baseYear)}
           tabIndex={0}
           onKeyDown={e => {
             if (e.key === 'ArrowLeft') onChange([start, Math.max(end - 1, start + 1)])
-            if (e.key === 'ArrowRight') onChange([start, Math.min(end + 1, 12)])
+            if (e.key === 'ArrowRight') onChange([start, Math.min(end + 1, maxPos)])
           }}
           className={thumbClass}
           style={{ left: `${rightPct}%`, zIndex: startOnTop ? 1 : 2 }}
         />
       </div>
 
-      {/* Tick marks */}
-      <div className="flex justify-between mt-1.5 px-0">
-        {MONTH_LABELS.map((_, i) => (
-          <div
-            key={i}
-            className={[
-              'w-px h-1 rounded-full',
-              i + 1 >= start && i + 1 <= end ? 'bg-brand-200' : 'bg-slate-200',
-            ].join(' ')}
-          />
-        ))}
+      {/* Tick marks — January of each year is taller to mark the boundary */}
+      <div className="flex justify-between mt-1.5">
+        {Array.from({ length: range + 1 }, (_, i) => {
+          const pos = minPos + i
+          const { month } = decodeYM(pos, baseYear)
+          const inRange = pos >= start && pos <= end
+          const isJan = month === 1
+          return (
+            <div
+              key={i}
+              className={[
+                'rounded-full',
+                isJan ? 'w-0.5 h-1.5' : 'w-px h-1',
+                inRange
+                  ? (isJan ? 'bg-brand-400' : 'bg-brand-200')
+                  : (isJan ? 'bg-slate-400' : 'bg-slate-200'),
+              ].join(' ')}
+            />
+          )
+        })}
       </div>
 
       {/* "之間" label */}

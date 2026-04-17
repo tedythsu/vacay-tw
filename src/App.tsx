@@ -1,20 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
 import { format } from 'date-fns'
 import { calculateStrategies, getAllHolidayDates } from './engine/strategy'
+import type { Strategy, HolidayEntry } from './engine/strategy'
 import { StrategyCard } from './components/StrategyCard'
 import { Calendar } from './components/Calendar'
-import { YearCalendarSheet } from './components/YearCalendarSheet'
 import { MonthRangePicker } from './components/MonthRangePicker'
-import type { HolidayEntry } from './engine/strategy'
 import holidaysData from './data/holidays.json'
 
 const ALL_HOLIDAYS = holidaysData as Record<string, HolidayEntry[]>
 const confirmedYears = Object.keys(ALL_HOLIDAYS).map(Number).sort()
+const baseYear = confirmedYears[0]
 
-function yearOfStrategyId(id: string): number | null {
-  const m = id.match(/(\d{4})/)
-  const y = m ? Number(m[1]) : null
-  return y && confirmedYears.includes(y) ? y : null
+// Absolute month position: months since baseYear January (0-indexed)
+function encodeYM(year: number, month: number): number {
+  return (year - baseYear) * 12 + (month - 1)
 }
 
 const MIN_BUDGET = 1
@@ -24,67 +23,74 @@ const today = format(new Date(), 'yyyy-MM-dd')
 const currentYear = new Date().getFullYear()
 const currentMonth = new Date().getMonth() + 1
 
-// Pre-compute all years at module init — data is static, no reason to recompute on interaction.
-// Year-tab switching becomes an O(1) Map lookup instead of a 300ms blocking calculation.
-// Also pass next year's January holidays so cross-year strategies (e.g. 12/28–1/3) are included.
-const ALL_STRATEGIES = new Map(
-  confirmedYears.map(y => {
-    const holidays = ALL_HOLIDAYS[String(y)] ?? []
-    const nextJan = (ALL_HOLIDAYS[String(y + 1)] ?? []).filter(
-      h => h.start.startsWith(`${y + 1}-01`)
-    )
-    return [y, calculateStrategies(y, [...holidays, ...nextJan])]
-  })
-)
-const ALL_HOLIDAY_DATES = new Map(
-  confirmedYears.map(y => [y, getAllHolidayDates(ALL_HOLIDAYS[String(y)] ?? [])])
+const minPos = encodeYM(currentYear, currentMonth)
+const maxPos = encodeYM(confirmedYears[confirmedYears.length - 1], 12)
+
+// Compute per-year strategies. Include next year's Jan+Feb holidays so cross-year
+// plans (e.g. 2026-12-28 ~ 2027-01-03) are naturally generated.
+const strategiesPerYear = confirmedYears.map(y => {
+  const holidays = ALL_HOLIDAYS[String(y)] ?? []
+  const nextEarly = (ALL_HOLIDAYS[String(y + 1)] ?? []).filter(
+    h => parseInt(h.start.slice(5, 7)) <= 2
+  )
+  return calculateStrategies(y, [...holidays, ...nextEarly])
+})
+
+// Merge all years into one flat list, dedup by start|end
+const _seenKeys = new Set<string>()
+const ALL_STRATEGIES_FLAT: Strategy[] = []
+for (const list of strategiesPerYear) {
+  for (const s of list) {
+    const key = `${s.start}|${s.end}`
+    if (!_seenKeys.has(key)) {
+      _seenKeys.add(key)
+      ALL_STRATEGIES_FLAT.push(s)
+    }
+  }
+}
+
+// Merged holiday dates across all years for calendar coloring
+const ALL_HOLIDAY_DATES_FLAT = confirmedYears.flatMap(
+  y => getAllHolidayDates(ALL_HOLIDAYS[String(y)] ?? [])
 )
 
-// Parse deep-link hash at module init — location.hash is synchronously available,
-// so initial state can be derived here instead of inside a setState-in-effect.
+// Parse deep-link hash at module init
 function parseHashState() {
   const hash = location.hash.slice(1)
   if (!hash) return null
-  const year = yearOfStrategyId(hash)
-  if (!year) return null
-  const match = ALL_STRATEGIES.get(year)?.find(s => s.id === hash)
+  const match = ALL_STRATEGIES_FLAT.find(s => s.id === hash)
   if (!match) return null
-  return { year, strategy: match }
+  return { strategy: match }
 }
 const INITIAL_HASH_STATE = parseHashState()
 
 export default function App() {
-  const [selectedYear, setSelectedYear] = useState<number>(INITIAL_HASH_STATE?.year ?? confirmedYears[0])
-  const [selectedStrategy, setSelectedStrategy] = useState<ReturnType<typeof calculateStrategies>[number] | null>(INITIAL_HASH_STATE?.strategy ?? null)
+  const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(
+    INITIAL_HASH_STATE?.strategy ?? null
+  )
   const [sheetOpen, setSheetOpen] = useState(INITIAL_HASH_STATE != null)
   const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
-  const initialYear = INITIAL_HASH_STATE?.year ?? confirmedYears[0]
   const [monthRange, setMonthRange] = useState<[number, number]>(() => {
-    if (initialYear === currentYear) {
-      // If deep-linking to a past-month strategy, widen range to include it
-      const stratMonth = INITIAL_HASH_STATE
-        ? parseInt(INITIAL_HASH_STATE.strategy.start.slice(5, 7))
-        : currentMonth
-      return [Math.min(stratMonth, currentMonth), 12]
+    if (INITIAL_HASH_STATE) {
+      const s = INITIAL_HASH_STATE.strategy
+      const sPos = encodeYM(parseInt(s.start.slice(0, 4)), parseInt(s.start.slice(5, 7)))
+      return [Math.min(sPos, minPos), maxPos]
     }
-    return [1, 12]
+    return [minPos, maxPos]
   })
   const [toggledGroups, setToggledGroups] = useState<Set<number>>(new Set())
   const [shareCopied, setShareCopied] = useState(false)
-  const [yearCalOpen, setYearCalOpen] = useState(false)
 
   const sheetRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
-  // Keeps last strategy visible during the slide-out animation (selectedStrategy clears on close)
-  const [lastStrategy, setLastStrategy] = useState<ReturnType<typeof calculateStrategies>[number] | null>(INITIAL_HASH_STATE?.strategy ?? null)
+  const [lastStrategy, setLastStrategy] = useState<Strategy | null>(
+    INITIAL_HASH_STATE?.strategy ?? null
+  )
   const displayStrategy = selectedStrategy ?? lastStrategy
 
-  const allStrategies = ALL_STRATEGIES.get(selectedYear) ?? []
   // Only keep strategies whose end date is today or in the future
-  const strategies = allStrategies.filter(s => s.end >= today)
-
-  const allYearHolidayDates = ALL_HOLIDAY_DATES.get(selectedYear) ?? []
+  const strategies = ALL_STRATEGIES_FLAT.filter(s => s.end >= today)
 
   // Lock body scroll when sheet is open
   useEffect(() => {
@@ -111,7 +117,7 @@ export default function App() {
     })
   }, [])
 
-  function handleSelectStrategy(strategy: ReturnType<typeof calculateStrategies>[number]) {
+  function handleSelectStrategy(strategy: Strategy) {
     triggerRef.current = document.activeElement as HTMLElement
     setSelectedStrategy(strategy)
     setLastStrategy(strategy)
@@ -122,17 +128,6 @@ export default function App() {
   function handleCloseSheet() {
     setSheetOpen(false)
     setSelectedStrategy(null)
-    window.history.replaceState(null, '', location.pathname)
-  }
-
-  function handleYearChange(year: number) {
-    setSelectedYear(year)
-    setSelectedStrategy(null)
-    setSheetOpen(false)
-    setYearCalOpen(false)
-    setShowFreebies(false)
-    setMonthRange(year === currentYear ? [currentMonth, 12] : [1, 12])
-    setToggledGroups(new Set())
     window.history.replaceState(null, '', location.pathname)
   }
 
@@ -151,14 +146,11 @@ export default function App() {
     })
   }
 
-  // ── Month filter ────────────────────────────────────────────────────────────
-  function matchesMonthFilter(s: ReturnType<typeof calculateStrategies>[number]): boolean {
-    const sMonth = parseInt(s.start.slice(5, 7))
-    // If end is in a later year (e.g. 元旦 12/31~1/2), treat eMonth as 12
-    const sYear = parseInt(s.start.slice(0, 4))
-    const eYear = parseInt(s.end.slice(0, 4))
-    const eMonth = eYear > sYear ? 12 : parseInt(s.end.slice(5, 7))
-    return sMonth <= monthRange[1] && eMonth >= monthRange[0]
+  // ── Month filter using absolute year+month positions ─────────────────────────
+  function matchesMonthFilter(s: Strategy): boolean {
+    const sPos = encodeYM(parseInt(s.start.slice(0, 4)), parseInt(s.start.slice(5, 7)))
+    const ePos = encodeYM(parseInt(s.end.slice(0, 4)), parseInt(s.end.slice(5, 7)))
+    return sPos <= monthRange[1] && ePos >= monthRange[0]
   }
 
   // ── Budget filtering ────────────────────────────────────────────────────────
@@ -167,7 +159,6 @@ export default function App() {
 
   type S = typeof exactBudget[number]
 
-  // Sort: most days first, then earliest date as tiebreaker
   const compareFn = (a: S, b: S) =>
     b.totalDays - a.totalDays || a.start.localeCompare(b.start)
 
@@ -188,7 +179,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-page font-sans">
-      <main className="max-w-lg mx-auto px-4" inert={(sheetOpen || yearCalOpen) || undefined}>
+      <main className="max-w-lg mx-auto px-4" inert={sheetOpen || undefined}>
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <header className="pt-8 pb-6 text-center">
@@ -198,85 +189,53 @@ export default function App() {
           <p className="text-sm text-slate-500 mt-1">找出最划算的連休方案</p>
         </header>
 
-        {/* ── Query Block (year + budget, merged) ─────────────────── */}
-        {(() => {
-          const yearIndex = confirmedYears.indexOf(selectedYear)
-          const prevYear = confirmedYears[yearIndex - 1]
-          const nextYear = confirmedYears[yearIndex + 1]
-          return (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 py-4 mb-6 space-y-3">
-              {/* Year row */}
-              {confirmedYears.length > 1 && (
-                <div className="flex items-center justify-center gap-3">
-                  <span className="text-sm text-slate-600">我要在</span>
-                  <div role="group" aria-label="年份選擇" className="flex items-center gap-2">
-                    <button
-                      onClick={() => prevYear && handleYearChange(prevYear)}
-                      disabled={!prevYear}
-                      className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                      aria-label="上一年"
-                    >
-                      ‹
-                    </button>
-                    <span className="text-xl font-bold text-slate-800 w-14 text-center tabular-nums">
-                      {selectedYear}
-                    </span>
-                    <button
-                      onClick={() => nextYear && handleYearChange(nextYear)}
-                      disabled={!nextYear}
-                      className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                      aria-label="下一年"
-                    >
-                      ›
-                    </button>
-                  </div>
-                  <span className="text-sm text-slate-600">年</span>
-                </div>
-              )}
+        {/* ── Query Block ──────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 py-4 mb-6 space-y-3">
 
-              {/* Month filter — always visible */}
-              <div className="border-t border-slate-100 pt-3">
-                <MonthRangePicker
-                  value={monthRange}
-                  onChange={setMonthRange}
-                  minStart={selectedYear === currentYear ? currentMonth : 1}
-                />
-              </div>
-
-              {/* Budget row */}
-              <div className="flex items-center justify-center gap-3">
-                <span className="text-sm text-slate-600">請</span>
-                <div role="group" aria-label="請假天數" className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleBudgetChange(-1)}
-                    disabled={budget <= MIN_BUDGET}
-                    className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                    aria-label="減少請假天數"
-                  >
-                    −
-                  </button>
-                  <span
-                    aria-label={`目前 ${budget} 天`}
-                    className="text-xl font-bold text-brand-600 w-9 text-center tabular-nums"
-                  >
-                    {budget}
-                  </span>
-                  <button
-                    onClick={() => handleBudgetChange(1)}
-                    disabled={budget >= MAX_BUDGET}
-                    className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                    aria-label="增加請假天數"
-                  >
-                    +
-                  </button>
-                </div>
-                <span className="text-sm text-slate-600">天假</span>
-              </div>
-
-
+          {/* 我要請 N 天假 */}
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-sm text-slate-600">我要請</span>
+            <div role="group" aria-label="請假天數" className="flex items-center gap-2">
+              <button
+                onClick={() => handleBudgetChange(-1)}
+                disabled={budget <= MIN_BUDGET}
+                className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                aria-label="減少請假天數"
+              >−</button>
+              <span
+                aria-label={`目前 ${budget} 天`}
+                className="text-xl font-bold text-brand-600 w-9 text-center tabular-nums"
+              >{budget}</span>
+              <button
+                onClick={() => handleBudgetChange(1)}
+                disabled={budget >= MAX_BUDGET}
+                className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 disabled:opacity-30 flex items-center justify-center text-slate-700 font-bold text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                aria-label="增加請假天數"
+              >+</button>
             </div>
-          )
-        })()}
+            <span className="text-sm text-slate-600">天假</span>
+          </div>
+
+          {/* 請幫我在 */}
+          <p className="text-sm text-slate-500 text-center">請幫我在</p>
+
+          {/* Year+month range slider */}
+          <div className="border-t border-slate-100 pt-3">
+            <MonthRangePicker
+              value={monthRange}
+              onChange={setMonthRange}
+              minPos={minPos}
+              maxPos={maxPos}
+              baseYear={baseYear}
+            />
+          </div>
+
+          {/* 找出最划算的連休方案 */}
+          <p className="text-sm text-slate-500 text-center border-t border-slate-100 pt-3">
+            找出最划算的連休方案
+          </p>
+
+        </div>
 
         {/* ── Paid Strategy List (grouped by 連休天數) ────────────── */}
         {paidStrategies.length === 0 ? (
@@ -287,7 +246,6 @@ export default function App() {
           <div className="mb-2 space-y-2">
             {groupedPaid.map(([totalDays, group], gi) => {
               const isBestGroup = gi === 0
-              // Best group: open by default, toggled = closed. Others: closed by default, toggled = open.
               const collapsed = isBestGroup ? toggledGroups.has(totalDays) : !toggledGroups.has(totalDays)
               return (
                 <div
@@ -299,7 +257,6 @@ export default function App() {
                       : 'border-slate-100 bg-white',
                   ].join(' ')}
                 >
-                  {/* Group header */}
                   <button
                     onClick={() => toggleGroup(totalDays)}
                     aria-expanded={!collapsed}
@@ -320,13 +277,10 @@ export default function App() {
                       <span
                         aria-hidden="true"
                         className={['text-slate-400 text-sm leading-none transition-transform duration-200', collapsed ? '' : 'rotate-90'].join(' ')}
-                      >
-                        ›
-                      </span>
+                      >›</span>
                     </div>
                   </button>
 
-                  {/* Cards */}
                   {!collapsed && (
                     <div className="space-y-3 pb-3">
                       {group.map(s => (
@@ -334,7 +288,6 @@ export default function App() {
                           <StrategyCard
                             strategy={s}
                             isSelected={selectedStrategy?.id === s.id}
-  
                             onSelect={() => handleSelectStrategy(s)}
                           />
                         </div>
@@ -350,7 +303,6 @@ export default function App() {
         {/* ── Freebies section ────────────────────────────────────── */}
         {freebies.length > 0 && (
           <div className="mt-2">
-            {/* Freebies */}
             <div className="rounded-2xl border border-green-300 bg-green-50 px-3 pt-1 pb-1">
               <button
                 onClick={() => setShowFreebies(prev => !prev)}
@@ -365,9 +317,7 @@ export default function App() {
                   <span
                     aria-hidden="true"
                     className={['text-slate-400 text-sm leading-none transition-transform duration-200', showFreebies ? 'rotate-90' : ''].join(' ')}
-                  >
-                    ›
-                  </span>
+                  >›</span>
                 </div>
               </button>
               {showFreebies && (
@@ -384,14 +334,6 @@ export default function App() {
                   ))}
                 </div>
               )}
-              {/* Calendar overview — always visible, contextually anchored to freebies */}
-              <button
-                onClick={() => setYearCalOpen(true)}
-                className="w-full flex items-center justify-between py-2.5 border-t border-green-200 text-xs text-green-700 hover:text-green-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 rounded-b-2xl"
-              >
-                <span className="font-medium">{selectedYear} 國定假日總覽</span>
-                <span aria-hidden="true" className="text-green-400">›</span>
-              </button>
             </div>
           </div>
         )}
@@ -405,18 +347,8 @@ export default function App() {
         </footer>
       </main>
 
-      {/* ── Year Calendar Sheet ─────────────────────────────────── */}
-      <YearCalendarSheet
-        year={selectedYear}
-        holidays={ALL_HOLIDAYS[String(selectedYear)] ?? []}
-        isOpen={yearCalOpen}
-        onClose={() => setYearCalOpen(false)}
-      />
-
       {/* ── Calendar Bottom Sheet ───────────────────────────────── */}
-      {/* Always in DOM so CSS transition runs on both open and close */}
       <>
-        {/* Backdrop */}
         <div
           className={[
             'fixed inset-0 bg-black/40 z-40 transition-opacity duration-300',
@@ -426,7 +358,6 @@ export default function App() {
           aria-hidden="true"
         />
 
-        {/* Sheet */}
         <div
           ref={sheetRef}
           tabIndex={-1}
@@ -440,14 +371,12 @@ export default function App() {
             sheetOpen ? 'translate-y-0' : 'translate-y-full',
           ].join(' ')}
         >
-          {/* Drag handle */}
           <div className="flex justify-center pt-3 pb-1 shrink-0">
             <div className="w-10 h-1 bg-slate-200 rounded-full" />
           </div>
 
           {displayStrategy && (
             <>
-              {/* Sheet header */}
               <div className="flex items-center justify-between px-5 py-4 shrink-0">
                 <div>
                   <p className="text-base font-bold text-slate-900 leading-tight">
@@ -461,17 +390,14 @@ export default function App() {
                   onClick={handleCloseSheet}
                   className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                   aria-label="關閉"
-                >
-                  ×
-                </button>
+                >×</button>
               </div>
 
-              {/* Scrollable content */}
               <div className="overflow-y-auto px-5 pb-6 flex-1">
                 <Calendar
                   key={displayStrategy.id}
                   month={displayStrategy.start.slice(0, 7)}
-                  holidayDates={allYearHolidayDates}
+                  holidayDates={ALL_HOLIDAY_DATES_FLAT}
                   leaveDates={displayStrategy.suggestedLeaveDates}
                   weekendDates={displayStrategy.weekendDates}
                 />
