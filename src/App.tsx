@@ -270,7 +270,7 @@ export default function App() {
                 aria-label={mode === 'a' ? '增加請假天數' : '增加連休天數'}
               >+</button>
             </div>
-            <span className="text-sm text-slate-600">{mode === 'a' ? '天假' : '天'}</span>
+            <span className="text-sm text-slate-600">天假</span>
           </div>
 
           {/* 幫我在以下時段，找出最佳連休方案 */}
