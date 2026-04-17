@@ -94,7 +94,7 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
       </div>
 
       {/* Legend */}
-      <div className="flex gap-3 mt-3 flex-wrap">
+      <div className="flex gap-3 mt-6 flex-wrap">
         {[
           { color: 'bg-red-100', label: '國定假日' },
           { color: 'bg-amber-100', label: '建議請假' },
