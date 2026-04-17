@@ -192,7 +192,7 @@ export default function App() {
         </header>
 
         {/* ── Query Block ──────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 py-4 mb-6 space-y-3">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 pt-4 pb-5 mb-6">
 
           {/* 我要請 N 天假 */}
           <div className="flex items-center justify-center gap-3">
@@ -218,24 +218,19 @@ export default function App() {
             <span className="text-sm text-slate-600">天假</span>
           </div>
 
-          {/* 請幫我在 */}
-          <p className="text-sm text-slate-500 text-center">請幫我在</p>
+          {/* 幫我在這段時間裡，找出最划算的連休方案 */}
+          <p className="text-sm text-slate-500 text-center mt-3 mb-4">
+            幫我在這段時間裡，找出最划算的連休方案
+          </p>
 
           {/* Year+month range slider */}
-          <div className="border-t border-slate-100 pt-3">
-            <MonthRangePicker
-              value={monthRange}
-              onChange={setMonthRange}
-              minPos={minPos}
-              maxPos={maxPos}
-              baseYear={baseYear}
-            />
-          </div>
-
-          {/* 找出最划算的連休方案 */}
-          <p className="text-sm text-slate-500 text-center border-t border-slate-100 pt-3">
-            找出最划算的連休方案
-          </p>
+          <MonthRangePicker
+            value={monthRange}
+            onChange={setMonthRange}
+            minPos={minPos}
+            maxPos={maxPos}
+            baseYear={baseYear}
+          />
 
         </div>
 

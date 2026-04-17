@@ -142,8 +142,6 @@ export function MonthRangePicker({ value, onChange, minPos, maxPos, baseYear }: 
         })}
       </div>
 
-      {/* "之間" label */}
-      <p className="text-sm text-slate-500 text-center mt-2">之間</p>
     </div>
   )
 }
