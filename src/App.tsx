@@ -73,6 +73,8 @@ export default function App() {
   const [sheetOpen, setSheetOpen] = useState(INITIAL_HASH_STATE != null)
   const [showFreebies, setShowFreebies] = useState(false)
   const [budget, setBudget] = useState(3)
+  const [mode, setMode] = useState<'a' | 'b'>('a')
+  const [modeBDays, setModeBDays] = useState(7)
   const [monthRange, setMonthRange] = useState<[number, number]>(() => {
     if (INITIAL_HASH_STATE) {
       const s = INITIAL_HASH_STATE.strategy
@@ -144,6 +146,16 @@ export default function App() {
     setToggledGroups(new Set())
   }
 
+  function handleModeChange(next: 'a' | 'b') {
+    setMode(next)
+    setToggledGroups(new Set())
+  }
+
+  function handleModeBDaysChange(delta: number) {
+    setModeBDays(prev => Math.max(MIN_BUDGET, Math.min(MAX_BUDGET, prev + delta)))
+    setToggledGroups(new Set())
+  }
+
   function toggleGroup(days: number) {
     setToggledGroups(prev => {
       const next = new Set(prev)
@@ -198,7 +210,27 @@ export default function App() {
         {/* ── Query Block ──────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 pt-5 pb-6 mb-6">
 
-          {/* 我要請 N 天假 */}
+          {/* ── Mode toggle ──────────────────────────────────── */}
+          <div className="flex bg-slate-100 rounded-[10px] p-[3px] gap-[3px] mb-[18px]" role="group" aria-label="查詢模式">
+            <button
+              onClick={() => handleModeChange('a')}
+              className={[
+                'flex-1 rounded-[8px] py-[7px] text-[13px] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+                mode === 'a' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400',
+              ].join(' ')}
+              aria-pressed={mode === 'a'}
+            >我有假</button>
+            <button
+              onClick={() => handleModeChange('b')}
+              className={[
+                'flex-1 rounded-[8px] py-[7px] text-[13px] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+                mode === 'b' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400',
+              ].join(' ')}
+              aria-pressed={mode === 'b'}
+            >我要休</button>
+          </div>
+
+          {/* 我要請/休 N 天假 */}
           <div className="flex items-center justify-center gap-3">
             <span className="text-sm text-slate-600">我要請</span>
             <div role="group" aria-label="請假天數" className="flex items-center gap-2">
