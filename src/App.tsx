@@ -184,13 +184,17 @@ export default function App() {
       <main className="max-w-lg mx-auto px-4" inert={(sheetOpen || calYear !== null) || undefined}>
 
         {/* ── Header ─────────────────────────────────────────────── */}
-        <header className="pt-10 pb-8 text-center">
-          <p className="text-xs font-semibold tracking-[0.18em] text-brand-500 mb-2">
-            vacay.tw
-          </p>
-          <h1 className="text-[1.75rem] font-extrabold tracking-tight text-slate-900 leading-none">
-            連假精算器
-          </h1>
+        <header className="pt-10 pb-8 flex justify-center">
+          <div className="w-max">
+            <div className="flex justify-between text-xs font-semibold text-brand-500 mb-2" aria-hidden="true">
+              {'vacay.tw'.split('').map((char, i) => (
+                <span key={i}>{char}</span>
+              ))}
+            </div>
+            <h1 className="text-[1.75rem] font-extrabold tracking-tight text-slate-900 leading-none">
+              <span className="sr-only">vacay.tw — </span>連假精算器
+            </h1>
+          </div>
         </header>
 
         {/* ── Query Block ──────────────────────────────────────────── */}
