@@ -224,9 +224,9 @@ export default function App() {
             <span className="text-sm text-slate-600">天假</span>
           </div>
 
-          {/* 幫我在這段時間裡，找出最划算的連休方案 */}
+          {/* 幫我在以下時段，找出最佳連休方案 */}
           <p className="text-sm text-slate-500 text-center mt-5 mb-5">
-            幫我在這段時間裡，找出最划算的連休方案
+            幫我在以下時段，找出最佳連休方案
           </p>
 
           {/* Year+month range slider */}
