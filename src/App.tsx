@@ -211,22 +211,24 @@ export default function App() {
         <div className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 pt-5 pb-6 mb-6">
 
           {/* ── Mode toggle ──────────────────────────────────── */}
-          <div className="flex bg-slate-100 rounded-[10px] p-[3px] gap-[3px] mb-[18px]" role="group" aria-label="查詢模式">
+          <div className="flex bg-slate-100 rounded-[10px] p-[3px] gap-[3px] mb-[18px]" role="radiogroup" aria-label="查詢模式">
             <button
               onClick={() => handleModeChange('a')}
+              role="radio"
               className={[
                 'flex-1 rounded-[8px] py-[7px] text-[13px] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
                 mode === 'a' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400',
               ].join(' ')}
-              aria-pressed={mode === 'a'}
+              aria-checked={mode === 'a'}
             >我有假</button>
             <button
               onClick={() => handleModeChange('b')}
+              role="radio"
               className={[
                 'flex-1 rounded-[8px] py-[7px] text-[13px] font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
                 mode === 'b' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400',
               ].join(' ')}
-              aria-pressed={mode === 'b'}
+              aria-checked={mode === 'b'}
             >我要休</button>
           </div>
 
