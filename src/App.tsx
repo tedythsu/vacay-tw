@@ -489,21 +489,23 @@ export default function App() {
                     >›</span>
                   </div>
                 </button>
-                {showFreebies && (
-                  <div className="divide-y divide-green-100 pb-1">
-                    {freebies.map(s => (
-                      <div key={s.id} id={s.id}>
-                        <StrategyCard
-                          strategy={s}
-                          isSelected={selectedStrategy?.id === s.id}
-                          showTotalDays
-                          onSelect={() => handleSelectStrategy(s)}
-                          grouped
-                        />
-                      </div>
-                    ))}
+                <div className={['grid transition-[grid-template-rows] duration-200 ease-out', showFreebies ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'].join(' ')}>
+                  <div className="overflow-hidden min-h-0">
+                    <div className="divide-y divide-green-100 pb-1">
+                      {freebies.map(s => (
+                        <div key={s.id} id={s.id}>
+                          <StrategyCard
+                            strategy={s}
+                            isSelected={selectedStrategy?.id === s.id}
+                            showTotalDays
+                            onSelect={() => handleSelectStrategy(s)}
+                            grouped
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                )}
+                </div>
               </>
             )}
 
