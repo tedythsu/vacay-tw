@@ -230,7 +230,7 @@ export default function App() {
         {/* ── Header ─────────────────────────────────────────────── */}
         <header className="pt-10 pb-8 flex justify-center">
           <h1>
-            <img src="/banner.png" alt="vacay.tw — 休假精算器" className="w-full" fetchPriority="high" decoding="async" />
+            <img src="/banner.png" alt="vacay.tw — 休假小助手" className="w-full" fetchPriority="high" decoding="async" />
           </h1>
         </header>
 
