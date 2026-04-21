@@ -254,7 +254,7 @@ export default function App() {
                 mode === 'a' ? 'text-slate-900' : 'text-slate-400',
               ].join(' ')}
               aria-checked={mode === 'a'}
-            >我有假</button>
+            >指定請假天數</button>
             <button
               onClick={() => handleModeChange('b')}
               role="radio"
@@ -263,7 +263,7 @@ export default function App() {
                 mode === 'b' ? 'text-slate-900' : 'text-slate-400',
               ].join(' ')}
               aria-checked={mode === 'b'}
-            >我要休</button>
+            >指定連休天數</button>
           </div>
 
           {/* 我要請/休 N 天假 */}
@@ -290,9 +290,9 @@ export default function App() {
             <span className="text-sm text-slate-600">天假</span>
           </div>
 
-          {/* 幫我在以下時段，找出最佳休假方案 */}
+          {/* 模式說明 */}
           <p className="text-sm text-slate-500 text-center mt-5 mb-3">
-            幫我在以下時段，找出最佳休假方案
+            {mode === 'a' ? '輸入指定請假天數，在以下時段，找出最佳休假方案' : '輸入指定連休天數，在以下時段，找出最佳休假方案'}
           </p>
 
           {/* 下一年度資料尚未公布時的提示 */}
