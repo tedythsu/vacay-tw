@@ -307,7 +307,7 @@ export default function App() {
 
         {/* ── Strategy List ─────────────────────────────────────── */}
         <section aria-labelledby="results-heading">
-        <h2 id="results-heading" className="sr-only">休假方案結果</h2>
+          <h2 id="results-heading" className="sr-only">休假方案結果</h2>
         {mode === 'a' ? (
           paidStrategies.length === 0 ? (
             <div className="py-10 text-center">

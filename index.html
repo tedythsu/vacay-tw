@@ -7,11 +7,13 @@
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Web font: Manrope (Latin + numbers; CJK falls through to system) -->
+    <!-- LCP image preload -->
     <link rel="preload" as="image" href="/banner.png" />
+
+    <!-- Web font: Manrope (Latin + numbers; CJK falls through to system) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <!-- Primary SEO -->
@@ -60,6 +62,7 @@
           "operatingSystem": "Any",
           "inLanguage": "zh-TW",
           "isAccessibleForFree": true,
+          "publisher": { "@id": "https://vacay.tw/#organization" },
           "offers": {
             "@type": "Offer",
             "price": "0",
@@ -71,7 +74,10 @@
           "@id": "https://vacay.tw/#organization",
           "name": "vacay.tw",
           "url": "https://vacay.tw",
-          "logo": "https://vacay.tw/web-app-manifest-512x512.png"
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://vacay.tw/web-app-manifest-512x512.png"
+          }
         }
       ]
     }
