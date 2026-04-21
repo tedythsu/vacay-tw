@@ -306,7 +306,8 @@ export default function App() {
         </section>
 
         {/* ── Strategy List ─────────────────────────────────────── */}
-        <h2 className="sr-only">休假方案結果</h2>
+        <section aria-labelledby="results-heading">
+        <h2 id="results-heading" className="sr-only">休假方案結果</h2>
         {mode === 'a' ? (
           paidStrategies.length === 0 ? (
             <div className="py-10 text-center">
@@ -456,6 +457,7 @@ export default function App() {
             </div>
           )
         )}
+        </section>
 
         {/* ── Freebies + 國定假日總覽 ──────────────────────────────── */}
         <div className="mt-2">
