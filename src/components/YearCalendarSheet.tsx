@@ -135,11 +135,6 @@ export function YearCalendarSheet({ year, holidays, isOpen, onClose }: Props) {
           isOpen ? 'translate-y-0' : 'translate-y-full',
         ].join(' ')}
       >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-1 shrink-0">
-          <div className="w-10 h-1 bg-slate-200 rounded-full" />
-        </div>
-
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 shrink-0">
           <div>
