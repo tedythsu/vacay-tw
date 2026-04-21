@@ -539,11 +539,13 @@ export default function App() {
                   )
                 })}
               </div>
-              {noDataTip !== null && (
-                <p className="text-center text-xs text-slate-400 pt-1 pb-0.5 animate-pulse">
-                  行政院尚未公布 {noDataTip} 年國定假日，敬請期待
-                </p>
-              )}
+              <div className={['grid transition-[grid-template-rows] duration-200 ease-out', noDataTip !== null ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'].join(' ')}>
+                <div className="overflow-hidden min-h-0">
+                  <p className="text-center text-xs text-slate-400 pt-1 pb-0.5">
+                    行政院尚未公布 {noDataTip ?? confirmedYears[confirmedYears.length - 1] + 1} 年國定假日，敬請期待
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
