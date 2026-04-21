@@ -593,9 +593,6 @@ export default function App() {
             sheetOpen ? 'translate-y-0' : 'translate-y-full',
           ].join(' ')}
         >
-          <div className="flex justify-center pt-3 pb-1 shrink-0">
-            <div className="w-10 h-1 bg-slate-200 rounded-full" />
-          </div>
 
           {displayStrategy && (
             <>
