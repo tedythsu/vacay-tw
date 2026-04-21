@@ -294,13 +294,6 @@ export default function App() {
             {mode === 'a' ? '輸入指定請假天數，在以下時段，找出最佳休假方案' : '輸入指定連休天數，在以下時段，找出最佳休假方案'}
           </p>
 
-          {/* 下一年度資料尚未公布時的提示 */}
-          {!ALL_HOLIDAYS[String(confirmedYears[confirmedYears.length - 1] + 1)] && (
-            <p className="text-xs text-slate-400 text-center mb-4">
-              目前資料至 {confirmedYears[confirmedYears.length - 1]} 年底，{confirmedYears[confirmedYears.length - 1] + 1} 年假期預計由行政院於 6–8 月公布後更新
-            </p>
-          )}
-
           {/* Year+month range slider */}
           <MonthRangePicker
             value={monthRange}
@@ -309,6 +302,13 @@ export default function App() {
             maxPos={maxPos}
             baseYear={baseYear}
           />
+
+          {/* 下一年度資料尚未公布時的提示 */}
+          {!ALL_HOLIDAYS[String(confirmedYears[confirmedYears.length - 1] + 1)] && (
+            <p className="text-xs text-slate-400 text-center mt-3">
+              目前資料至 {confirmedYears[confirmedYears.length - 1]} 年底，{confirmedYears[confirmedYears.length - 1] + 1} 年假期預計由行政院於 6–8 月公布後更新
+            </p>
+          )}
 
         </section>
 
