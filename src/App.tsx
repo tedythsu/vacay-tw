@@ -565,6 +565,15 @@ export default function App() {
             </a>
             （CC BY 4.0）
           </p>
+          <p className="text-xs text-slate-400">
+            有問題或建議？{' '}
+            <a
+              href="mailto:vacay.tw@gmail.com"
+              className="underline underline-offset-2 hover:text-slate-600 transition-colors"
+            >
+              vacay.tw@gmail.com
+            </a>
+          </p>
           <p className="text-xs text-slate-400">© {currentYear} vacay.tw</p>
         </footer>
       </main>
