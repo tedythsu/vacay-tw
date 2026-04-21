@@ -483,7 +483,7 @@ export default function App() {
                 >
                   <span className="text-xs text-slate-500">國定連假</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400">{freebies.length} 個方案</span>
+                    <span className="text-xs text-slate-500">{freebies.length} 個方案</span>
                     <span
                       aria-hidden="true"
                       className={['text-slate-400 text-sm leading-none transition-transform duration-200', showFreebies ? 'rotate-90' : ''].join(' ')}
