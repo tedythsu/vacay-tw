@@ -41,7 +41,7 @@ function MiniMonth({
 
   function cellClass(dateStr: string, inMonth: boolean, day: Date): string {
     const base = 'text-center text-[11px] py-[3px] leading-none'
-    if (!inMonth)               return `${base} text-slate-200`
+    if (!inMonth)               return `${base} text-slate-300`
     if (holidaySet.has(dateStr)) return `${base} bg-red-100 text-red-600 font-bold rounded`
     if (makeupSet.has(dateStr))  return `${base} bg-amber-100 text-amber-700 font-bold rounded`
     if (isWeekend(day))          return `${base} text-slate-400`
@@ -146,7 +146,7 @@ export function YearCalendarSheet({ year, holidays, isOpen, onClose }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+            className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             aria-label="關閉"
           >
             ×
