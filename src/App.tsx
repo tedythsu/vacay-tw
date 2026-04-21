@@ -306,7 +306,7 @@ export default function App() {
 
           {/* 下一年度資料尚未公布時的提示 */}
           {!ALL_HOLIDAYS[String(confirmedYears[confirmedYears.length - 1] + 1)] && (
-            <p className="text-xs text-slate-400 text-center mt-3">
+            <p className="text-xs text-slate-500 text-center mt-3">
               目前資料至 {confirmedYears[confirmedYears.length - 1]} 年底，{confirmedYears[confirmedYears.length - 1] + 1} 年假期預計由行政院於 6–8 月公布後更新
             </p>
           )}
@@ -346,13 +346,13 @@ export default function App() {
                         <span className={['tabular-nums leading-none', isBestGroup ? 'text-xl font-bold text-amber-700' : 'text-xl font-bold text-slate-800'].join(' ')}>{totalDays}</span>
                         <span className="text-xs text-slate-500">天</span>
                         {isBestGroup && (
-                          <span className="text-xs bg-amber-400 text-white px-2 py-0.5 rounded-full font-semibold">
-                            ★ 最佳
+                          <span className="text-xs bg-amber-400 text-amber-900 px-2 py-0.5 rounded-full font-semibold">
+                            <span aria-hidden="true">★ </span>最佳
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400">{group.length} 個方案</span>
+                        <span className="text-xs text-slate-500">{group.length} 個方案</span>
                         <span
                           aria-hidden="true"
                           className={['text-slate-400 text-sm leading-none transition-transform duration-200', collapsed ? '' : 'rotate-90'].join(' ')}
@@ -422,13 +422,13 @@ export default function App() {
                         <span className={['tabular-nums leading-none', isBestGroup ? 'text-xl font-bold text-amber-700' : 'text-xl font-bold text-slate-800'].join(' ')}>{leaveDays}</span>
                         <span className="text-xs text-slate-500">天</span>
                         {isBestGroup && (
-                          <span className="text-xs bg-amber-400 text-white px-2 py-0.5 rounded-full font-semibold">
-                            ★ 最佳
+                          <span className="text-xs bg-amber-400 text-amber-900 px-2 py-0.5 rounded-full font-semibold">
+                            <span aria-hidden="true">★ </span>最佳
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-400">{group.length} 個方案</span>
+                        <span className="text-xs text-slate-500">{group.length} 個方案</span>
                         <span
                           aria-hidden="true"
                           className={['text-slate-400 text-sm leading-none transition-transform duration-200', collapsed ? '' : 'rotate-90'].join(' ')}
@@ -553,7 +553,7 @@ export default function App() {
 
         {/* ── Footer ─────────────────────────────────────────────── */}
         <footer className="py-6 border-t border-slate-100 text-center space-y-1.5">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             假期資料來源：
             <a
               href="https://github.com/ruyut/TaiwanCalendar"
@@ -565,7 +565,7 @@ export default function App() {
             </a>
             （CC BY 4.0）
           </p>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             有問題或建議？{' '}
             <a
               href="mailto:vacay.tw@gmail.com"
@@ -574,7 +574,7 @@ export default function App() {
               vacay.tw@gmail.com
             </a>
           </p>
-          <p className="text-xs text-slate-400">© {currentYear} vacay.tw</p>
+          <p className="text-xs text-slate-500">© {currentYear} vacay.tw</p>
         </footer>
       </main>
 
@@ -616,7 +616,7 @@ export default function App() {
                 </div>
                 <button
                   onClick={handleCloseSheet}
-                  className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                  className="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-lg leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                   aria-label="關閉"
                 >×</button>
               </div>
