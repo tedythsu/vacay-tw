@@ -95,6 +95,7 @@ export default function App() {
   const [toggledGroups, setToggledGroups] = useState<Set<number>>(new Set())
   const [shareCopied, setShareCopied] = useState(false)
   const [calYear, setCalYear] = useState<number | null>(null)
+  const [noDataTip, setNoDataTip] = useState<number | null>(null)
 
   const sheetRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLElement | null>(null)
@@ -497,27 +498,40 @@ export default function App() {
             )}
 
             {/* 國定假日總覽 — 固定顯示，無資料的年份呈灰色 */}
-            <div className="flex gap-1 border-t border-green-200 pt-1 pb-1">
-              {[currentYear, currentYear + 1].map(y => {
-                const hasData = !!ALL_HOLIDAYS[String(y)]
-                return (
-                  <button
-                    key={y}
-                    onClick={() => hasData && setCalYear(y)}
-                    disabled={!hasData}
-                    className={[
-                      'flex-1 flex items-center justify-center gap-1 px-1 py-2 rounded-lg text-xs transition-colors',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
-                      hasData
-                        ? 'text-green-700 hover:text-green-900'
-                        : 'text-slate-400 cursor-not-allowed',
-                    ].join(' ')}
-                  >
-                    <span className="font-medium">{y} 國定假日總覽</span>
-                    <span className={hasData ? 'text-green-400' : 'text-slate-300'}>›</span>
-                  </button>
-                )
-              })}
+            <div className="border-t border-green-200 pt-1 pb-1">
+              <div className="flex gap-1">
+                {[currentYear, currentYear + 1].map(y => {
+                  const hasData = !!ALL_HOLIDAYS[String(y)]
+                  return (
+                    <button
+                      key={y}
+                      onClick={() => {
+                        if (hasData) {
+                          setCalYear(y)
+                        } else {
+                          setNoDataTip(y)
+                          setTimeout(() => setNoDataTip(null), 2500)
+                        }
+                      }}
+                      className={[
+                        'flex-1 flex items-center justify-center gap-1 px-1 py-2 rounded-lg text-xs transition-colors',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
+                        hasData
+                          ? 'text-green-700 hover:text-green-900'
+                          : 'text-slate-400 cursor-not-allowed',
+                      ].join(' ')}
+                    >
+                      <span className="font-medium">{y} 國定假日總覽</span>
+                      <span className={hasData ? 'text-green-400' : 'text-slate-300'}>›</span>
+                    </button>
+                  )
+                })}
+              </div>
+              {noDataTip !== null && (
+                <p className="text-center text-xs text-slate-400 pt-1 pb-0.5 animate-pulse">
+                  行政院尚未公布 {noDataTip} 年國定假日，敬請期待
+                </p>
+              )}
             </div>
           </div>
         </div>
