@@ -234,7 +234,8 @@ export default function App() {
         </header>
 
         {/* ── Query Block ──────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 pt-5 pb-6 mb-6">
+        <section aria-labelledby="query-heading" className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 pt-5 pb-6 mb-6">
+          <h2 id="query-heading" className="sr-only">查詢條件</h2>
 
           {/* ── Mode toggle ──────────────────────────────────── */}
           <div className="relative flex bg-slate-100 rounded-[10px] p-[3px] gap-[3px] mb-[18px]" role="radiogroup" aria-label="查詢模式">
@@ -302,9 +303,10 @@ export default function App() {
             baseYear={baseYear}
           />
 
-        </div>
+        </section>
 
         {/* ── Strategy List ─────────────────────────────────────── */}
+        <h2 className="sr-only">休假方案結果</h2>
         {mode === 'a' ? (
           paidStrategies.length === 0 ? (
             <div className="py-10 text-center">
