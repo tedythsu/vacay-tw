@@ -229,8 +229,9 @@ export default function App() {
 
         {/* ── Header ─────────────────────────────────────────────── */}
         <header className="pt-10 pb-8 flex justify-center">
-          <h1>
-            <img src="/banner.png" alt="vacay.tw — 休假小助手" className="w-full" fetchPriority="high" decoding="async" />
+          <h1 className="flex flex-col items-center gap-1">
+            <span className="text-4xl font-bold tracking-tight text-gray-900">休假小助手</span>
+            <span className="text-sm font-medium tracking-widest text-gray-400">VACAY.TW</span>
           </h1>
         </header>
 
