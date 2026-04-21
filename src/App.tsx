@@ -291,7 +291,7 @@ export default function App() {
 
           {/* 模式說明 */}
           <p className="text-sm text-slate-500 text-center mt-5 mb-3">
-            {mode === 'a' ? '輸入指定請假天數，在以下時段，找出最佳休假方案' : '輸入指定連休天數，在以下時段，找出最佳休假方案'}
+            {mode === 'a' ? '在以下時段，找出搭配國定假日的最佳請假方案' : '在以下時段，找出搭配國定假日的最佳連休方案'}
           </p>
 
           {/* Year+month range slider */}
