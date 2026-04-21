@@ -266,9 +266,8 @@ export default function App() {
             >指定連休天數</button>
           </div>
 
-          {/* 我要請/休 N 天假 */}
+          {/* N 天 stepper */}
           <div className="flex items-center justify-center gap-3">
-            <span className="text-sm text-slate-600">我要{mode === 'a' ? '請' : '休'}</span>
             <div role="group" aria-label={mode === 'a' ? '請假天數' : '目標連休天數'} className="flex items-center gap-2">
               <button
                 onClick={() => mode === 'a' ? handleBudgetChange(-1) : handleModeBDaysChange(-1)}
@@ -287,7 +286,7 @@ export default function App() {
                 aria-label={mode === 'a' ? '增加請假天數' : '增加連休天數'}
               >+</button>
             </div>
-            <span className="text-sm text-slate-600">天假</span>
+            <span className="text-sm text-slate-600">天</span>
           </div>
 
           {/* 模式說明 */}
