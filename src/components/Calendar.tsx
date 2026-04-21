@@ -40,7 +40,7 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
 
   function dayClasses(dateStr: string, inMonth: boolean): string {
     const base = 'text-center text-xs py-1.5 rounded-lg transition-colors tabular-nums'
-    if (!inMonth) return `${base} text-slate-200`
+    if (!inMonth) return `${base} text-slate-300`
     if (holidaySet.has(dateStr)) return `${base} bg-red-100 text-red-600 font-bold`
     if (leaveSet.has(dateStr)) return `${base} bg-amber-100 text-amber-700 font-bold`
     if (weekendSet.has(dateStr)) return `${base} bg-slate-100 text-slate-500`
