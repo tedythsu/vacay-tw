@@ -129,7 +129,7 @@ export function YearCalendarSheet({ year, holidays, isOpen, onClose }: Props) {
         aria-label={`${year} 年假日總覽`}
         className={[
           'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-50',
-          'bg-white rounded-t-3xl shadow-2xl',
+          'bg-[var(--surface)] rounded-t-3xl shadow-2xl',
           'transition-transform duration-300 ease-out',
           'max-h-[92vh] flex flex-col focus-visible:outline-none',
           isOpen ? 'translate-y-0' : 'translate-y-full',

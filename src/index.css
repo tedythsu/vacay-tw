@@ -15,6 +15,9 @@
 
   /* Page surface: brand-hue tinted neutral, away from pure slate-50 */
   --page-bg: oklch(97.5% 0.008 190);
+
+  /* Card surface: barely-tinted white — cohesion with brand hue, imperceptible tint */
+  --surface: oklch(99.5% 0.003 190);
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }

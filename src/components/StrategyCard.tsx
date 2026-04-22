@@ -20,7 +20,7 @@ export function StrategyCard({ strategy, isSelected, onSelect, showTotalDays, gr
         grouped
           ? 'rounded-xl px-2 py-3 hover:bg-slate-50 active:scale-[0.99]'
           : [
-              'rounded-2xl p-4 bg-white hover:scale-[1.02] active:scale-[0.99]',
+              'rounded-2xl p-4 bg-[var(--surface)] hover:scale-[1.02] active:scale-[0.99]',
               isSelected
                 ? 'border-2 border-brand-500 shadow-md shadow-brand-100'
                 : 'border border-slate-200 shadow-sm',
