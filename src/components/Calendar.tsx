@@ -49,7 +49,7 @@ export function Calendar({ month, holidayDates, leaveDates, weekendDates }: Prop
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+    <div className="bg-[var(--surface)] rounded-2xl border border-slate-200 p-4 shadow-sm">
       {/* Month navigation */}
       <div className="flex items-center justify-between mb-3">
         <button

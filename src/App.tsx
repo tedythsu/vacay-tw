@@ -236,7 +236,7 @@ export default function App() {
         </header>
 
         {/* ── Query Block ──────────────────────────────────────────── */}
-        <section aria-labelledby="query-heading" className="bg-white rounded-2xl border border-slate-100 shadow-md px-4 pt-5 pb-6 mb-6">
+        <section aria-labelledby="query-heading" className="bg-[var(--surface)] rounded-2xl border border-slate-100 shadow-md px-4 pt-5 pb-6 mb-6">
           <h2 id="query-heading" className="sr-only">查詢條件</h2>
 
           {/* ── Mode toggle ──────────────────────────────────── */}
@@ -244,7 +244,7 @@ export default function App() {
             {/* Sliding active pill */}
             <div
               aria-hidden="true"
-              className="absolute top-[3px] bottom-[3px] rounded-[8px] bg-white shadow-sm transition-transform duration-200 ease-in-out pointer-events-none"
+              className="absolute top-[3px] bottom-[3px] rounded-[8px] bg-[var(--surface)] shadow-sm transition-transform duration-200 ease-in-out pointer-events-none"
               style={{ left: '3px', width: 'calc(50% - 4.5px)', transform: mode === 'b' ? 'translateX(calc(100% + 3px))' : 'translateX(0)' }}
             />
             <button
@@ -333,7 +333,7 @@ export default function App() {
                       'rounded-2xl border px-3 pt-1 pb-1',
                       isBestGroup
                         ? 'border-amber-300 bg-amber-50'
-                        : 'border-slate-100 bg-white',
+                        : 'border-slate-100 bg-[var(--surface)]',
                     ].join(' ')}
                   >
                     <button
@@ -409,7 +409,7 @@ export default function App() {
                       'rounded-2xl border px-3 pt-1 pb-1',
                       isBestGroup
                         ? 'border-amber-300 bg-amber-50'
-                        : 'border-slate-100 bg-white',
+                        : 'border-slate-100 bg-[var(--surface)]',
                     ].join(' ')}
                   >
                     <button
@@ -596,7 +596,7 @@ export default function App() {
           aria-modal="true"
           aria-label="月曆預覽"
           className={[
-            'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-50 bg-white rounded-t-3xl shadow-2xl',
+            'fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-50 bg-[var(--surface)] rounded-t-3xl shadow-2xl',
             'transition-transform duration-300 ease-out',
             'max-h-[88vh] flex flex-col focus-visible:outline-none',
             sheetOpen ? 'translate-y-0' : 'translate-y-full',
